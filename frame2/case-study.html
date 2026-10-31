@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>frame² case study — did they earn that record, or get lucky?</title>
+<meta name="description" content="Separating process from result across 58 Red Sox seasons: the rules, what they found, a data mistake I caught and fixed, and the model's limits.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="frame² case study — did they earn that record, or get lucky?">
+<meta property="og:description" content="Process vs. result across 58 Red Sox seasons. By Ian Kachadorian.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single column read like a scouting report; serif body, numbers in mono, Red Sox red as the accent */
+:root{
+  --bg:#f6f5f2; --sheet:#ffffff; --ink:#0d1b2a; --muted:#5a6270; --rule:#dcd9d2;
+  --accent:#b50d29; --accent-soft:#f9e3e6; --gold:#9a7316;
+  --f-display:"Inter Tight",system-ui,sans-serif;
+  --f-body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b1420; --sheet:#121d2b; --ink:#e8ecf2; --muted:#97a2b3; --rule:#253246;
+  --accent:#f0566e; --accent-soft:#3a1820; --gold:#e4b84d; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;font:18px/1.62 var(--f-body)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:45rem;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.crumb{font:14px/1.4 system-ui,sans-serif;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.eyebrow{font:600 12px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin:34px 0 10px}
+h1{font-family:var(--f-display);font-size:clamp(2rem,6vw,2.8rem);line-height:1.06;letter-spacing:-.025em;font-weight:800;margin:0 0 14px;text-wrap:balance}
+.dek{font-size:1.15rem;color:var(--muted);margin:0 0 20px}
+.meta{font:14px/1.4 system-ui,sans-serif;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--rule)}
+h2{font-family:var(--f-display);font-size:1.4rem;letter-spacing:-.015em;margin:40px 0 10px;text-wrap:balance}
+h3{font-family:var(--f-display);font-size:1.05rem;margin:26px 0 6px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:1.3rem}
+li{margin-bottom:6px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:.86em}
+.scroll{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font:15px/1.45 system-ui,sans-serif}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--muted)}
+td{padding:8px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font:600 12px/1 system-ui,sans-serif;padding:4px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.callout{background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--gold);border-radius:8px;padding:14px 16px;margin:18px 0}
+.callout p:last-child{margin:0}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px;padding-top:22px;border-top:1px solid var(--rule);font-family:system-ui,sans-serif}
+.btn{display:inline-block;font-weight:600;text-decoration:none;border:1px solid var(--accent);background:var(--accent);color:var(--sheet);border-radius:8px;padding:10px 16px}
+.btn.ghost{background:transparent;color:var(--accent)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="crumb" aria-label="Breadcrumb"><a href="../">Duality</a><span>/</span><a href="./">frame² timeline</a><span>/</span><span>Case study</span></nav>
+
+  <p class="eyebrow">Case study</p>
+  <h1>Did they earn that record, or get lucky?</h1>
+  <p class="dek">Separating process from result across 58 Red Sox seasons: the rules, what they found, a data mistake I caught and fixed, and where the model falls short.</p>
+  <div class="meta"><span>Ian Kachadorian</span><span>October 2026</span><span>5 min read</span></div>
+
+  <h2>The problem</h2>
+  <p>Standings record outcomes. They do not tell you whether a team earned them. A 92-win season can come from a dominant roster or from winning an unusual number of close games, and the two predict very different futures.</p>
+  <p>frame² rests on one idea: <b>result = process + variance</b>. Wins are the result. Run differential, the runs a team scored minus the runs it allowed, is the best simple measure of process. When the two disagree, variance is usually the reason.</p>
+
+  <h2>The approach</h2>
+
+  <h3>1. One row per season</h3>
+  <p>The dataset covers every Red Sox season from 1967 to 2024: wins and losses, run differential, team OPS, OBP and SLG, ERA and FIP, the playoff result, the manager, the key players, and a one-sentence summary of what drove the season.</p>
+
+  <h3>2. Tag each season with plain rules</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>Tag</th><th>Rule</th><th>Reading</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag">Signal</span></td><td class="num">≥ 95 wins and ≥ +150 run diff</td><td>Elite process matched an elite record</td></tr>
+      <tr><td><span class="tag">Underperformed</span></td><td class="num">≥ +75 run diff, &lt; 90 wins</td><td>The process pointed higher than the record</td></tr>
+      <tr><td><span class="tag">Overperformed</span></td><td class="num">&lt; +25 run diff, ≥ 92 wins</td><td>The record outran the process</td></tr>
+      <tr><td><span class="tag">Balanced</span></td><td>Everything else</td><td>Record and process told the same story</td></tr>
+    </tbody>
+  </table></div>
+  <p>Rules instead of a model was a deliberate choice: anyone can check a tag by looking at two numbers.</p>
+
+  <h3>3. Explain it the same way every time</h3>
+  <p>Every insight follows observation, mechanism, implication. For 2024: the team finished 81–81; run differential was +4, so the record matched the process; an average team got an average result, with nothing to chase or excuse.</p>
+
+  <h3>4. Ship it as tools</h3>
+  <p>The Python and Streamlit app has a season explorer, an era comparison, a franchise timeline, a post generator and a live game module that reads the MLB Stats API. It is covered by 215 automated tests that run on every push. The <a href="./">live timeline</a> is generated from the same data.</p>
+
+  <h2>What it found</h2>
+  <ul>
+    <li><b>Six seasons rate as signal,</b> and four of them won the World Series: 2004, 2007, 2013 and 2018. The other two, <span class="num">2003</span> (+152) and <span class="num">2008</span> (+151), had championship-level process and lost in the ALCS. Same process, different variance.</li>
+    <li><b>Four seasons underperformed:</b> 1973, 1985, 1988 and 1995. The 1985 team went 81–81 with a +80 run differential, a better team than its record.</li>
+    <li><b>No season clearly overperformed</b> under these rules. The record rarely ran far ahead of the run differential.</li>
+    <li><b>Across all 58 seasons,</b> wins and run differential correlate at <span class="num">0.74</span>. Process explains most of the record, and the rest is what makes baseball interesting.</li>
+  </ul>
+
+  <div class="callout">
+    <p><b>A mistake I caught.</b> The dataset marks every pennant season as "world series." Several outputs read that as a title, so the timeline claimed six championships and treated 1967, 1975 and 1986 as wins. The Red Sox actually made seven trips and won four. I fixed it with one list of title seasons that every page now reads from, and added a test that fails if titles are ever not a subset of World Series seasons. The lesson: a label in the data is not the same as its meaning, and anything shown as a fact needs a check behind it.</p>
+  </div>
+
+  <h2>The limits</h2>
+  <ul>
+    <li><b>Shortened seasons are not normalized.</b> The rules use raw wins, so the strike years and 2020's 60 games are judged against full-season thresholds. In 1995 the team went 86–58, a 96-win pace, but is tagged underperformed because 86 is under 90.</li>
+    <li><b>The thresholds are hand-set.</b> +150 for signal is a judgment, not a fitted value.</li>
+    <li><b>Two definitions of signal exist in the project.</b> The interactive timeline uses a broader rule (95 wins and +80) than the analysis engine. They need to agree.</li>
+    <li><b>Run differential is a simple process measure.</b> It ignores schedule strength and the league's run environment.</li>
+  </ul>
+
+  <h2>What I would build next</h2>
+  <ol>
+    <li>Compare wins to a Pythagorean expectation scaled to 162 games, which fixes shortened seasons and replaces hand-set thresholds with a measured gap.</li>
+    <li>Settle one definition of signal and use it everywhere.</li>
+    <li>Host the full Streamlit app so every page is live, not just the timeline.</li>
+  </ol>
+
+  <div class="cta"><a class="btn" href="./">Open the timeline</a><a class="btn ghost" href="https://github.com/dualityframework-ux/frame2_mvp">Read the code</a><a class="btn ghost" href="../">More from Duality</a></div>
+</main>
+</body>
+</html>
