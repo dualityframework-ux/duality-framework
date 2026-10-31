@@ -1,19 +1,17 @@
 # Roadmap
 
-## Now
-- Establish a clear identity and accessible landing page.
-- Document active experiments with accurate status.
-- Keep code and documentation easy to navigate.
+## Done
+- Landing page deployed on GitHub Pages.
+- Project repos cleaned up: accurate READMEs, licenses, CI on the frame² repos.
+- Runway shipped as a live tool.
 
 ## Next
-- Add project screenshots and verified demos.
-- Improve mobile accessibility and metadata.
-- Publish a deployed landing page.
-- Create a consistent logo and social preview asset.
+- Add screenshots to each project card.
+- Write a short case study for each project: problem, approach, result, limits.
+- Decide on one clear positioning statement for the site.
 
 ## Later
-- Document technical architectures.
-- Share useful experiments and write-ups.
-- Add automation only where it provides measurable value.
+- Publish a hosted demo of frame².
+- Build the next tool in the same spirit as Runway.
 
 This roadmap is directional, not a delivery commitment.

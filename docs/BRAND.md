@@ -1,10 +1,10 @@
 # Duality brand guide
 
 ## Positioning
-An independent initiative exploring AI, analytics, software and human-centered technology.
+Small, useful tools for clearer everyday decisions, built by Ian Kachadorian.
 
 ## Voice
-Direct, curious, understated and precise. Avoid hype, unverified performance claims and corporate filler.
+First person ("I"), direct, curious, understated and precise. Avoid hype, unverified performance claims and corporate filler.
 
 ## Taglines
 Primary: **See the signal.**
@@ -18,12 +18,4 @@ Supporting: **Clarity in complexity.**
 - Muted: `#aaa7bb`
 - Typography: system sans-serif, bold headlines, spacious layouts.
 - Motif: geometric duality and paired forms, with subtle contrast.
-
-## Suggested GitHub account settings
-Display name: **Ian Kachadorian | Duality**
-Bio: **Building at the intersection of AI, data, design and human decision-making. See the signal.**
-Location: **Massachusetts**
-Website: link to the deployed Duality site once live.
-Social: **https://x.com/iankachadorian**
-
-GitHub account settings and avatar must be changed separately; repository commits do not change them.
+- Social preview: `assets/social-preview.png` (1200×630).

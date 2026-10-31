@@ -9,7 +9,7 @@ The repository includes a GitHub Actions workflow at `.github/workflows/pages.ym
 3. Merge the deployment workflow into `main`.
 4. In **Actions**, check the **Deploy Duality website** run.
 
-Expected project-site address after successful deployment:
+Live site:
 https://dualityframework-ux.github.io/duality-framework/
 
 If a Pages policy or permissions restriction appears, resolve it in the repository settings. A committed workflow alone does not prove the site is live.
@@ -17,6 +17,4 @@ If a Pages policy or permissions restriction appears, resolve it in the reposito
 ## Assets
 - `assets/duality-mark.svg` — scalable logo, usable as an avatar source
 - `assets/favicon.svg` — browser icon
-
-## GitHub account profile
-Account-level display name, bio, avatar and social links must be set in GitHub's profile settings; this repository workflow does not modify those settings.
+- `assets/social-preview.png` — link preview image for LinkedIn and X

@@ -4,7 +4,7 @@
 
 Duality is an independent technology and design initiative exploring the intersection of artificial intelligence, software, analytics, and human decision-making.
 
-We build useful tools, examine emerging patterns, and turn complex information into interfaces people can actually use.
+I build small, useful tools that turn complex information into interfaces people can actually use.
 
 ## Principles
 
@@ -24,11 +24,13 @@ We build useful tools, examine emerging patterns, and turn complex information i
 
 ## Projects
 
-- [frame² MVP](https://github.com/dualityframework-ux/frame2_mvp) — sports analytics and contextual dashboards.
-- [frame² Mental](https://github.com/dualityframework-ux/frame2mental) — a mental health awareness application.
-- [Red Sox History](https://github.com/dualityframework-ux/frame2-redsox-history) — a baseball history exploration project.
+| Project | What it is | Status |
+| --- | --- | --- |
+| [Runway](https://github.com/dualityframework-ux/Runway) | Cash-flow and debt payoff planner. [Try it live](https://dualityframework-ux.github.io/Runway/). | Live |
+| [frame²](https://github.com/dualityframework-ux/frame2_mvp) | Sports analytics that explains results through process vs. result. Python, Streamlit, 214 tests. | Run locally |
+| [frame²mental](https://github.com/dualityframework-ux/frame2mental) | Daily check-ins that surface emotional patterns. Local data only; not medical advice. | Run locally |
 
-These are independent experiments at different stages of development, not claims of production readiness.
+These are independent projects at different stages, not claims of production readiness.
 
 ## Explore
 
@@ -36,10 +38,9 @@ Open [the landing page](./index.html) locally in a browser. No build step or dep
 
 ## About
 
-Created by **Ian Kachadorian**, an independent developer interested in AI, data, design, and the future of human-computer interaction.
+Created by **Ian Kachadorian**, a finance and data professional with a background in fund accounting and inventory analytics.
 
 - [GitHub](https://github.com/dualityframework-ux)
-- [X](https://x.com/iankachadorian)
 - [LinkedIn](https://www.linkedin.com/in/iankachadorian/)
 
 ## Direction
@@ -49,3 +50,5 @@ Build small, learn quickly, publish what works. The goal is not to predict every
 ---
 
 *Duality — see the signal.*
+
+Licensed under the MIT License. See [LICENSE](LICENSE).
