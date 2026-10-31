@@ -1,0 +1,187 @@
+{
+ "summary": {
+  "lines": 164,
+  "varianceLines": 28,
+  "locationAccuracy": 0.8292682926829268,
+  "bookValue": 203651.84999999992,
+  "gross": 11562.249999999998,
+  "net": -2006.45,
+  "grossAccuracy": 0.9432254114067709,
+  "netAccuracy": 0.9901476465841091,
+  "overThreshold": 4
+ },
+ "for80": 9,
+ "flaggedCounters": [
+  "C-07"
+ ],
+ "patterns": [
+  {
+   "sku": "BAT-5100",
+   "location": "C-15-04",
+   "pattern": "mislocated",
+   "partner": "C-14-02"
+  },
+  {
+   "sku": "BAT-5100",
+   "location": "C-14-02",
+   "pattern": "mislocated",
+   "partner": "C-15-04"
+  },
+  {
+   "sku": "ALT-2400",
+   "location": "D-03-01",
+   "pattern": "mislocated",
+   "partner": "D-21-03"
+  },
+  {
+   "sku": "ALT-2400",
+   "location": "D-21-03",
+   "pattern": "mislocated",
+   "partner": "D-03-01"
+  },
+  {
+   "sku": "BRK-4410",
+   "location": "F-17-03",
+   "pattern": "empty",
+   "partner": null
+  },
+  {
+   "sku": "PMP-4100",
+   "location": "A-22-01",
+   "pattern": "empty",
+   "partner": null
+  },
+  {
+   "sku": "BRK-3301",
+   "location": "E-11-03",
+   "pattern": "transposed",
+   "partner": null
+  },
+  {
+   "sku": "STR-2500",
+   "location": "B-19-02",
+   "pattern": "timing",
+   "partner": null
+  },
+  {
+   "sku": "SEN-3200",
+   "location": "F-02-05",
+   "pattern": "timing",
+   "partner": null
+  },
+  {
+   "sku": "SEN-3100",
+   "location": "D-08-04",
+   "pattern": "found",
+   "partner": null
+  },
+  {
+   "sku": "SPK-7002",
+   "location": "A-09-04",
+   "pattern": "uom",
+   "partner": null
+  },
+  {
+   "sku": "CLP-5005",
+   "location": "B-06-02",
+   "pattern": "uom",
+   "partner": null
+  },
+  {
+   "sku": "LMP-9005",
+   "location": "E-12-01",
+   "pattern": "swap",
+   "partner": "LMP-9006 at E-12-02"
+  },
+  {
+   "sku": "LMP-9006",
+   "location": "E-12-02",
+   "pattern": "swap",
+   "partner": "LMP-9005 at E-12-01"
+  },
+  {
+   "sku": "BRK-4410",
+   "location": "E-01-04",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "BLT-8120",
+   "location": "E-09-02",
+   "pattern": "mislocated",
+   "partner": "A-16-01"
+  },
+  {
+   "sku": "BLT-8120",
+   "location": "A-16-01",
+   "pattern": "mislocated",
+   "partner": "E-09-02"
+  },
+  {
+   "sku": "BRK-3301",
+   "location": "F-08-04",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "FLT-2210",
+   "location": "F-20-01",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "LMP-9005",
+   "location": "E-14-04",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "LMP-9006",
+   "location": "B-11-03",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "FLT-1042",
+   "location": "C-23-02",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "FUS-6010",
+   "location": "B-10-01",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "SPK-7001",
+   "location": "D-15-04",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "SPK-7001",
+   "location": "B-05-02",
+   "pattern": "unexplained",
+   "partner": null
+  },
+  {
+   "sku": "FLT-1043",
+   "location": "E-14-01",
+   "pattern": "unexplained",
+   "partner": null
+  },
+  {
+   "sku": "TPE-7100",
+   "location": "D-24-01",
+   "pattern": "counter",
+   "partner": null
+  },
+  {
+   "sku": "CLP-5005",
+   "location": "A-05-05",
+   "pattern": "counter",
+   "partner": null
+  }
+ ]
+}

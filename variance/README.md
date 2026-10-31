@@ -37,6 +37,10 @@ A CSV with one row per counted location. Required: SKU, location, system quantit
 - **Net accuracy** = 1 − |Σ variance $| ÷ book value
 - **Location accuracy** = locations with no variance ÷ locations counted
 
+## Python and SQL
+
+The same analysis is also written in pandas and SQLite, with a parity test against this engine. See [`python/`](python/).
+
 ## Files
 
 - `engine.js`: parsing, metrics and pattern detection as pure functions (browser and Node)
