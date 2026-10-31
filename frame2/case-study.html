@@ -108,9 +108,28 @@ td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
     <li><b>Run differential is a simple process measure.</b> It ignores schedule strength and the league's run environment.</li>
   </ul>
 
+  <h2>Update: expected wins, scaled to 162 games</h2>
+  <p>Since writing this, I added the first fix. Every season now gets an expected win total from its run differential, using the rule of thumb that about 10 runs of differential are worth one win, scaled to 162 games. Luck is the gap between the team's win pace and that expectation.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Season</th><th class="r">Record</th><th class="r">Run diff</th><th class="r">Expected</th><th class="r">Luck</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>1985</td><td class="r">81–81</td><td class="r">+80</td><td class="r">89.0</td><td class="r">−8.0</td><td>Missed playoffs</td></tr>
+      <tr><td>2002</td><td class="r">93–69</td><td class="r">+194</td><td class="r">100.4</td><td class="r">−7.4</td><td>Missed playoffs</td></tr>
+      <tr><td>1975</td><td class="r">95–65</td><td class="r">+87</td><td class="r">89.8</td><td class="r">+6.4</td><td>World Series</td></tr>
+      <tr><td>1995</td><td class="r">86–58</td><td class="r">+93</td><td class="r">91.5</td><td class="r">+5.3</td><td>Lost ALDS</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>1985 was the unluckiest season in the data:</b> a team worth 89 wins finished at .500.</li>
+    <li><b>2002 played like a 100-win team</b> and missed the playoffs.</li>
+    <li><b>1975 was the luckiest pennant,</b> about six wins ahead of its run differential.</li>
+    <li><b>1995 shows why scaling matters.</b> The original rules tag it underperformed because 86 wins is under 90. Over 162 games it was a 97-win pace, about five wins <i>ahead</i> of its run differential. Same season, opposite conclusion.</li>
+  </ul>
+  <p>Win pace and expected wins correlate at <span class="num">0.91</span> once seasons are scaled, against 0.74 for raw wins and run differential. The luck table is in the app's process-vs-result page, with tests behind the math.</p>
+
   <h2>What I would build next</h2>
   <ol>
-    <li>Compare wins to a Pythagorean expectation scaled to 162 games, which fixes shortened seasons and replaces hand-set thresholds with a measured gap.</li>
+    <li>Add runs scored and allowed to the data, so expected wins can use the full Pythagorean formula instead of the runs-per-win rule below.</li>
     <li>Settle one definition of signal and use it everywhere.</li>
     <li>Host the full Streamlit app so every page is live, not just the timeline.</li>
   </ol>
