@@ -1,14 +1,15 @@
 # Duality brand guide
 
 ## Positioning
-Small, useful tools for clearer everyday decisions, built by Ian Kachadorian.
+Small tools that explain why the numbers moved, built by Ian Kachadorian.
+Method: observation → mechanism → implication. Result = process + variance.
 
 ## Voice
 First person ("I"), direct, curious, understated and precise. Avoid hype, unverified performance claims and corporate filler.
 
 ## Taglines
 Primary: **See the signal.**
-Supporting: **Clarity in complexity.**
+Supporting: **Small tools that explain why the numbers moved.**
 
 ## Visual system
 - Background: `#0a0a11`

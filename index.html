@@ -1,48 +1,163 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0a11">
-<meta name="description" content="Duality: clarity in complexity. Exploring AI, software, analytics and human-centered design.">
+<meta name="description" content="Duality is Ian Kachadorian's studio of small tools that explain why the numbers moved: in a bank balance, a baseball season or a warehouse count.">
 <title>Duality — See the signal</title>
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Duality — See the signal">
-<meta property="og:description" content="Clarity in complexity. Exploring AI, data, software and human-centered technology.">
+<meta property="og:description" content="Small tools that explain why the numbers moved. By Ian Kachadorian.">
 <meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/assets/social-preview.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://dualityframework-ux.github.io/duality-framework/">
 <meta name="twitter:card" content="summary_large_image">
 <style>
-:root{color-scheme:dark;--bg:#0a0a11;--fg:#f4f2ff;--muted:#aaa7bb;--accent:#ad91ff}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 80% 10%,#2c1d4c 0%,transparent 43%),var(--bg);color:var(--fg);font:16px/1.65 system-ui,-apple-system,Segoe UI,sans-serif}
-a{color:inherit;text-decoration:none}a:hover,a:focus-visible{color:var(--accent)}.wrap{max-width:1120px;margin:auto;padding:0 26px}
-nav{display:flex;justify-content:space-between;align-items:center;padding:28px 0}.brand{font-size:1.2rem;font-weight:800;letter-spacing:.15em}.brand span{color:var(--accent)}
-.links{display:flex;gap:24px}.links a{color:var(--muted)}.hero{padding:125px 0 130px}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.23em;font-size:.76rem;font-weight:700}
-h1{font-size:clamp(3.5rem,10vw,8rem);letter-spacing:-.075em;line-height:1.02;margin:18px 0 28px;max-width:900px}h1 em{font-style:normal;color:var(--accent)}
-.lead{max-width:630px;color:var(--muted);font-size:1.2rem}.actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:36px}
-.btn{display:inline-block;padding:12px 22px;border:1px solid #555068;border-radius:10px}.primary{background:var(--accent);color:#0a0713;border-color:var(--accent);font-weight:700}.primary:hover{color:#0a0713;background:#c5b4ff}
-section{padding:64px 0;border-top:1px solid #302b3b}h2{font-size:clamp(2rem,4vw,3rem);letter-spacing:-.04em;margin:0 0 16px}.sub{color:var(--muted);max-width:660px}
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:32px}.card{background:#15131e;border:1px solid #302b3b;padding:26px;border-radius:16px;display:flex;flex-direction:column;gap:6px}.card h3{margin:4px 0 0}.card p{margin:0}.card small{color:var(--accent);letter-spacing:.1em}.card .meta{margin-top:auto;padding-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.status{border:1px solid #555068;border-radius:999px;padding:2px 10px}.status.live{border-color:var(--accent);color:var(--accent)}.card .go{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}.card .go a{color:var(--fg);text-decoration:underline;text-underline-offset:3px}.card h3{font-size:1.3rem}.card p{color:var(--muted)}
-footer{padding:38px 0 60px;color:var(--muted);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
-@media(max-width:700px){.hero{padding:90px 0}.cards{grid-template-columns:1fr}.links{gap:14px;font-size:.9rem}}
+/* Layout: one column of bands; hero states the thesis, work leads, method and background back it up */
+:root{color-scheme:dark;--bg:#0a0a11;--surface:#15131e;--line:#302b3b;--line-2:#555068;--fg:#f4f2ff;--muted:#aaa7bb;--accent:#ad91ff;--accent-ink:#0a0713}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse at 80% 0%,#2c1d4c 0%,transparent 40%),var(--bg);color:var(--fg);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none}
+a:hover,a:focus-visible{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-9999px}.skip:focus{left:16px;top:16px;background:var(--surface);padding:8px 12px;z-index:10}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+nav{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:24px}
+.brand{display:flex;align-items:center;gap:10px;font-size:1.05rem;font-weight:800;letter-spacing:.18em}
+.brand img{border-radius:7px}
+.links{display:flex;gap:22px}.links a{color:var(--muted)}
+.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.2em;font-size:.74rem;font-weight:700;margin:0}
+.hero{padding-block:96px 104px}
+h1{font-size:clamp(3.2rem,9vw,7rem);letter-spacing:-.06em;line-height:1.02;margin:16px 0 24px;text-wrap:balance}
+h1 em{font-style:normal;color:var(--accent)}
+.lead{max-width:40rem;color:var(--muted);font-size:1.2rem;margin:0}
+.lead strong{color:var(--fg);font-weight:600}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.btn{display:inline-block;padding:12px 20px;border:1px solid var(--line-2);border-radius:10px;font-weight:600}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.primary:hover,.primary:focus-visible{color:var(--accent-ink);background:#c5b4ff}
+section{padding-block:64px;border-top:1px solid var(--line)}
+h2{font-size:clamp(1.9rem,4vw,2.8rem);letter-spacing:-.035em;line-height:1.1;margin:10px 0 14px;text-wrap:balance}
+.sub{color:var(--muted);max-width:40rem;margin:0}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:32px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.card img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;border-bottom:1px solid var(--line);background:#0d1117}
+.card .body{padding:22px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card small{color:var(--accent);letter-spacing:.1em;font-size:.72rem;font-weight:700}
+.card h3{font-size:1.3rem;margin:0}
+.card p{color:var(--muted);margin:0}
+.card .q{color:var(--fg);font-weight:600}
+.meta{margin-top:auto;padding-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.status{border:1px solid var(--line-2);border-radius:999px;padding:2px 10px}
+.status.live{border-color:var(--accent);color:var(--accent)}
+.go{display:flex;gap:16px;flex-wrap:wrap}
+.go a{color:var(--fg);text-decoration:underline;text-underline-offset:3px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:32px 0 0;padding:0;list-style:none;counter-reset:s}
+.steps li{border-top:2px solid var(--accent);padding-top:14px;counter-increment:s}
+.steps li::before{content:"0" counter(s);color:var(--accent);font-size:.8rem;font-weight:700;letter-spacing:.1em}
+.steps h3{margin:6px 0 6px;font-size:1.15rem}
+.steps p{margin:0;color:var(--muted)}
+.example{margin-top:28px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;max-width:46rem}
+.example p{margin:0;color:var(--muted)}.example b{color:var(--fg)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:32px}
+.fact{border:1px solid var(--line);border-radius:14px;padding:20px}
+.fact .n{font-size:1.9rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.fact .n span{color:var(--accent)}
+.fact h3{margin:4px 0;font-size:1rem}
+.fact p{margin:0;color:var(--muted);font-size:.92rem}
+footer{padding-block:36px 56px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line)}
+footer .links{gap:18px}
+@media(max-width:820px){.cards,.steps,.facts{grid-template-columns:1fr}.hero{padding-block:64px 72px}.links{gap:14px;font-size:.92rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
+<a class="skip" href="#work">Skip to projects</a>
 <div class="wrap">
-<nav aria-label="Main navigation"><a class="brand" href="#top"><img src="./assets/duality-mark.svg" alt="" width="30" height="30" style="vertical-align:middle;margin-right:9px;border-radius:7px">DUALITY<span>²</span></a><div class="links"><a href="#approach">Approach</a><a href="#projects">Projects</a><a href="https://github.com/dualityframework-ux">GitHub</a></div></nav>
+<nav aria-label="Main navigation">
+  <a class="brand" href="#top"><img src="./assets/duality-mark.svg" alt="" width="28" height="28">DUALITY</a>
+  <div class="links"><a href="#work">Work</a><a href="#method">Method</a><a href="#about">About</a></div>
+</nav>
+
 <main id="top">
-<div class="hero"><div class="eyebrow">Independent technology & design</div><h1>See the <em>signal.</em></h1><p class="lead">Clarity in complexity. I build small tools at the intersection of data, software and everyday decisions, designed to make the next step clearer.</p><div class="actions"><a class="btn primary" href="#projects">Explore projects</a><a class="btn" href="https://github.com/dualityframework-ux">View GitHub</a></div></div>
-<section id="approach"><div class="eyebrow">01 / Philosophy</div><h2>Less noise. More meaning.</h2><p class="sub">Technology should help people think, create and act. I favor thoughtful interfaces, testable ideas and useful systems over empty complexity.</p></section>
-<section id="projects"><div class="eyebrow">02 / Selected work</div><h2>Ideas in motion.</h2><p class="sub">Tools and experiments at different stages. Each card says what state it is in.</p>
-<div class="cards">
-<article class="card"><small>PERSONAL FINANCE</small><h3>Runway</h3><p>A cash-flow and debt payoff planner. See the lowest your balance will dip before payday and when you'll be debt-free. Private, on-device, no bank linking.</p><div class="meta"><span class="status live">Live</span><span>Oct 2026</span></div><div class="go"><a href="https://dualityframework-ux.github.io/Runway/">Try it ↗</a><a href="https://github.com/dualityframework-ux/Runway">Code ↗</a></div></article>
-<article class="card"><small>SPORTS ANALYTICS</small><h3>frame²</h3><p>Explains why a season went the way it did, using process vs. result. Red Sox history from 1967 to 2024, era comparisons and a franchise timeline. Python and Streamlit, 214 tests.</p><div class="meta"><span class="status">Run locally</span><span>2026</span></div><div class="go"><a href="https://github.com/dualityframework-ux/frame2_mvp">Code ↗</a></div></article>
-<article class="card"><small>SELF-AWARENESS</small><h3>frame²mental</h3><p>Daily check-ins that turn mood, stress and sleep into patterns you can act on. Data stays on your machine. A personal tool, not medical advice.</p><div class="meta"><span class="status">Run locally</span><span>2026</span></div><div class="go"><a href="https://github.com/dualityframework-ux/frame2mental">Code ↗</a></div></article>
-</div></section>
-<section id="about"><div class="eyebrow">03 / About</div><h2>Built with intention.</h2><p class="sub">Duality is the independent project of Ian Kachadorian, a finance and data professional with a background in fund accounting and inventory analytics. Small experiments, real learning, continuous iteration.</p></section>
-</main>
-<footer><span>© 2026 Duality. See the signal.</span><span><a href="https://www.linkedin.com/in/iankachadorian/">LinkedIn</a> · <a href="https://github.com/dualityframework-ux">GitHub</a></span></footer>
+<div class="hero">
+  <p class="eyebrow">Ian Kachadorian · Independent tools</p>
+  <h1>See the <em>signal.</em></h1>
+  <p class="lead">I build small tools that explain <strong>why the numbers moved</strong>: in a bank balance, a baseball season or a warehouse count. Six years in fund accounting and six in distribution and inventory control taught me the number is never the whole story.</p>
+  <div class="actions"><a class="btn primary" href="#work">See the work</a><a class="btn" href="https://dualityframework-ux.github.io/Runway/">Try Runway ↗</a></div>
 </div>
-</body></html>
+
+<section id="work" aria-labelledby="work-h">
+  <p class="eyebrow">Work</p>
+  <h2 id="work-h">Three tools, one question.</h2>
+  <p class="sub">Each project asks what is driving a result, not just what the result was. Each card says what state the project is in.</p>
+  <div class="cards">
+    <article class="card">
+      <img src="./assets/projects/runway.webp" alt="Runway on a phone: cash-flow forecast with the low point marked, and the debt payoff view" width="1200" height="750" loading="lazy">
+      <div class="body">
+        <small>PERSONAL FINANCE</small>
+        <h3>Runway</h3>
+        <p class="q">How low will my balance get before payday?</p>
+        <p>Forecasts your checking balance 60 days out from paychecks, bills and spending, and shows when an extra payment gets you debt-free. Private and on-device.</p>
+        <div class="meta"><span class="status live">Live</span><span>Oct 2026 · JavaScript</span></div>
+        <div class="go"><a href="https://dualityframework-ux.github.io/Runway/">Try it ↗</a><a href="https://github.com/dualityframework-ux/Runway">Code ↗</a></div>
+      </div>
+    </article>
+    <article class="card">
+      <img src="./assets/projects/frame2.webp" alt="frame² franchise timeline: wins for every Red Sox season from 1967 to 2024, colored by playoff result" width="1200" height="750" loading="lazy">
+      <div class="body">
+        <small>SPORTS ANALYTICS</small>
+        <h3>frame²</h3>
+        <p class="q">Did they earn that record, or get lucky?</p>
+        <p>Separates process from result across 58 Red Sox seasons using run differential, OPS and ERA, then tags each season as signal, overperformed or underperformed.</p>
+        <div class="meta"><span class="status">Run locally</span><span>2026 · Python, Streamlit · 214 tests</span></div>
+        <div class="go"><a href="https://github.com/dualityframework-ux/frame2_mvp">Code ↗</a></div>
+      </div>
+    </article>
+    <article class="card">
+      <img src="./assets/projects/frame2mental.webp" alt="frame²mental: a daily check-in turned into an observation, a mechanism and an implication" width="1200" height="750" loading="lazy">
+      <div class="body">
+        <small>SELF-AWARENESS</small>
+        <h3>frame²mental</h3>
+        <p class="q">What is behind how I feel this week?</p>
+        <p>Turns daily check-ins on mood, stress and sleep into patterns and a next step. Data stays on your machine. A personal tool, not medical advice.</p>
+        <div class="meta"><span class="status">Run locally</span><span>2026 · Python, Streamlit</span></div>
+        <div class="go"><a href="https://github.com/dualityframework-ux/frame2mental">Code ↗</a></div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section id="method" aria-labelledby="method-h">
+  <p class="eyebrow">Method</p>
+  <h2 id="method-h">Result = process + variance.</h2>
+  <p class="sub">Every tool here follows the same three steps, the same way I root-cause an inventory variance at work.</p>
+  <ol class="steps">
+    <li><h3>Observation</h3><p>State what happened, plainly, with the number.</p></li>
+    <li><h3>Mechanism</h3><p>Find the driver underneath it, and separate it from noise.</p></li>
+    <li><h3>Implication</h3><p>Say what it means for the next decision.</p></li>
+  </ol>
+  <div class="example"><p><b>Observation:</b> the 2024 Red Sox finished 81–81. <b>Mechanism:</b> run differential was neutral, so the record matched the process. <b>Implication:</b> an average team got an average result; nothing to chase or excuse.</p></div>
+</section>
+
+<section id="about" aria-labelledby="about-h">
+  <p class="eyebrow">About</p>
+  <h2 id="about-h">Built by someone who reconciles for a living.</h2>
+  <p class="sub">I'm Ian Kachadorian. I've spent my career making numbers agree and explaining when they don't. Duality is where I turn that habit into tools.</p>
+  <div class="facts">
+    <div class="fact"><div class="n">$4<span>B</span></div><h3>Fund accounting, BNY Mellon</h3><p>Led a team of six delivering daily NAVs at 99.5%+ accuracy across six funds.</p></div>
+    <div class="fact"><div class="n">250<span>K+</span></div><h3>Inventory control</h3><p>Ran cycle counts over 250,000+ locations per trimester; root-cause 150+ variances a week.</p></div>
+    <div class="fact"><div class="n">5,000<span>+</span></div><h3>Sports modeling</h3><p>Modeled 360+ Division I teams across 5,000+ games in Python and R.</p></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span>© 2026 Duality · Ian Kachadorian</span>
+  <span class="links"><a href="https://www.linkedin.com/in/iankachadorian/">LinkedIn</a><a href="https://github.com/dualityframework-ux">GitHub</a></span>
+</footer>
+</div>
+</body>
+</html>

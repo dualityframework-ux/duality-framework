@@ -1,10 +1,8 @@
 # DUALITY
 
-**Clarity in complexity. Systems for what comes next.**
+**Small tools that explain why the numbers moved.**
 
-Duality is an independent technology and design initiative exploring the intersection of artificial intelligence, software, analytics, and human decision-making.
-
-I build small, useful tools that turn complex information into interfaces people can actually use.
+Duality is Ian Kachadorian's home for small tools that explain why a number moved: in a bank balance, a baseball season or a warehouse count. Every project follows the same method: **observation → mechanism → implication**, built on the idea that result = process + variance.
 
 ## Principles
 
