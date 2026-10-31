@@ -26,7 +26,7 @@ Duality is Ian Kachadorian's home for small tools that explain why a number move
 | --- | --- | --- |
 | [Variance](./variance/) | Cycle count analysis: accuracy, Pareto and root cause for every variance, with drafted audit write-ups. [Try it live](https://dualityframework-ux.github.io/duality-framework/variance/). | Live |
 | [Runway](https://github.com/dualityframework-ux/Runway) | Cash-flow and debt payoff planner. [Try it live](https://dualityframework-ux.github.io/Runway/). | Live |
-| [frame²](https://github.com/dualityframework-ux/frame2_mvp) | Sports analytics that explains results through process vs. result. Python, Streamlit, 214 tests. | Run locally |
+| [frame²](https://github.com/dualityframework-ux/frame2_mvp) | Sports analytics that explains results through process vs. result. Python, Streamlit, 215 tests. [Live timeline](https://dualityframework-ux.github.io/duality-framework/frame2/). | Live timeline |
 | [frame²mental](https://github.com/dualityframework-ux/frame2mental) | Daily check-ins that surface emotional patterns. Local data only; not medical advice. | Run locally |
 
 These are independent projects at different stages, not claims of production readiness.
