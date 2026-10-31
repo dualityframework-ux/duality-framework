@@ -41,7 +41,7 @@ h1 em{font-style:normal;color:var(--accent)}
 section{padding-block:64px;border-top:1px solid var(--line)}
 h2{font-size:clamp(1.9rem,4vw,2.8rem);letter-spacing:-.035em;line-height:1.1;margin:10px 0 14px;text-wrap:balance}
 .sub{color:var(--muted);max-width:40rem;margin:0}
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:32px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:32px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .card img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;border-bottom:1px solid var(--line);background:#0d1117}
 .card .body{padding:22px;display:flex;flex-direction:column;gap:8px;flex:1}
@@ -86,14 +86,25 @@ footer .links{gap:18px}
   <p class="eyebrow">Ian Kachadorian · Independent tools</p>
   <h1>See the <em>signal.</em></h1>
   <p class="lead">I build small tools that explain <strong>why the numbers moved</strong>: in a bank balance, a baseball season or a warehouse count. Six years in fund accounting and six in distribution and inventory control taught me the number is never the whole story.</p>
-  <div class="actions"><a class="btn primary" href="#work">See the work</a><a class="btn" href="https://dualityframework-ux.github.io/Runway/">Try Runway ↗</a></div>
+  <div class="actions"><a class="btn primary" href="./variance/">Try Variance</a><a class="btn" href="#work">See all work</a></div>
 </div>
 
 <section id="work" aria-labelledby="work-h">
   <p class="eyebrow">Work</p>
-  <h2 id="work-h">Three tools, one question.</h2>
+  <h2 id="work-h">Four tools, one question.</h2>
   <p class="sub">Each project asks what is driving a result, not just what the result was. Each card says what state the project is in.</p>
   <div class="cards">
+    <article class="card">
+      <img src="./assets/projects/variance.webp" alt="Variance: gross and net accuracy tiles, a Pareto chart of the largest variances, and likely causes ranked by dollars" width="1200" height="750">
+      <div class="body">
+        <small>INVENTORY ANALYTICS</small>
+        <h3>Variance</h3>
+        <p class="q">Why is the cycle count off?</p>
+        <p>Upload a count and get gross and net accuracy, the lines driving 80% of the dollars, and the likely root cause of each variance, with a drafted audit write-up for anything over your threshold.</p>
+        <div class="meta"><span class="status live">Live</span><span>Oct 2026 · JavaScript · tested</span></div>
+        <div class="go"><a href="./variance/">Try it ↗</a><a href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance">Code ↗</a></div>
+      </div>
+    </article>
     <article class="card">
       <img src="./assets/projects/runway.webp" alt="Runway on a phone: cash-flow forecast with the low point marked, and the debt payoff view" width="1200" height="750" loading="lazy">
       <div class="body">

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Variance — find out why the count is off</title>
+<meta name="description" content="Upload a cycle count and see gross and net accuracy, which lines drive the dollars, and the likely root cause of each variance, with a drafted audit explanation.">
+<meta name="theme-color" content="#1c1917">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Variance — find out why the count is off">
+<meta property="og:description" content="Cycle count analysis with root-cause detection and drafted audit explanations. Runs in your browser.">
+<meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/variance/preview.png">
+<meta property="og:url" content="https://dualityframework-ux.github.io/duality-framework/variance/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23facc15'/%3E%3Cpath d='M18 18l14 30 14-30' fill='none' stroke='%231c1917' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a warehouse audit worksheet. Summary first, then where the dollars are, then causes, then the lines that need a write-up. */
+:root{
+  --bg:#f5f4f0; --sheet:#ffffff; --ink:#1c1917; --muted:#5f5a52; --rule:#dedad2; --rule-2:#c9c4b9;
+  --accent:#c2410c; --accent-soft:#fbe9df; --label:#facc15; --label-ink:#1c1917;
+  --good:#15803d; --bad:#b91c1c; --bad-soft:#fde8e8; --warn:#a16207;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141210; --sheet:#1c1a17; --ink:#ede9e2; --muted:#a8a196; --rule:#34302a; --rule-2:#4a453d;
+  --accent:#fb923c; --accent-soft:#3a2416; --label:#facc15; --label-ink:#1c1917;
+  --good:#4ade80; --bad:#f87171; --bad-soft:#3b1d1d; --warn:#facc15; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;font:15px/1.5 var(--f-body)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px;display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+h1{font-weight:800;font-size:2rem;letter-spacing:-.03em;margin:0;display:flex;align-items:center;gap:10px}
+h1 .mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--label);color:var(--label-ink);font-size:1.2rem}
+.tag{color:var(--muted);margin:2px 0 0}
+.by{font-size:.82rem;color:var(--muted)}
+h2{font-size:1.1rem;font-weight:700;margin:0;letter-spacing:-.01em}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sub{color:var(--muted);font-size:.88rem;margin:0}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+button,.btn{font:inherit;font-weight:600;border:1px solid var(--ink);background:var(--ink);color:var(--sheet);border-radius:8px;padding:9px 14px;cursor:pointer}
+button.ghost,.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule-2)}
+button.tiny{padding:4px 10px;font-size:.8rem}
+button:disabled{opacity:.5;cursor:default}
+label.btn{display:inline-block}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+input[type=number],select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--rule-2);border-radius:7px;padding:8px 10px;min-width:0}
+input[type=number]{width:8.5rem;font-family:var(--f-num)}
+textarea{width:100%;min-height:120px;font-family:var(--f-num);font-size:.8rem}
+.tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.tile{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;min-width:0}
+.tile .k{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.tile .v{font-family:var(--f-num);font-size:1.35rem;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tile .d{font-size:.78rem;color:var(--muted)}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.neg{color:var(--bad)} .pos{color:var(--good)}
+.chart{width:100%;height:auto;display:block}
+.causes{display:flex;flex-direction:column}
+.cause{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--rule);background:none;border-left:0;border-right:0;border-bottom:0;color:inherit;text-align:left;border-radius:0;font-weight:400;cursor:pointer;width:100%}
+.cause:first-child{border-top:0}
+.cause:hover .cname,.cause.on .cname{color:var(--accent)}
+.cname{font-weight:600}
+.cname small{display:block;color:var(--muted);font-weight:400;font-size:.78rem}
+.track{height:10px;background:var(--rule);border-radius:5px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.camt{text-align:right;font-family:var(--f-num);font-size:.88rem;white-space:nowrap}
+.camt small{display:block;color:var(--muted)}
+.loc{display:inline-block;font-family:var(--f-num);font-weight:600;font-size:.8rem;background:var(--label);color:var(--label-ink);padding:1px 7px;border-radius:3px;letter-spacing:.02em;white-space:nowrap}
+.pill{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pill.p-unexplained{background:var(--rule);color:var(--muted)}
+.flag{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--rule)}
+.flag:first-of-type{border-top:0;padding-top:0}
+.flag .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.flag .who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.flag .who b{font-weight:600}
+.oim{display:grid;grid-template-columns:7.5rem 1fr;gap:4px 12px;font-size:.9rem;margin:0}
+.oim dt{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;padding-top:2px}
+.oim dd{margin:0}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;text-align:left;padding:8px 6px;border-bottom:1px solid var(--rule-2);white-space:nowrap}
+th.r,td.r{text-align:right}
+td{padding:8px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+td.r{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.hot td{background:var(--bad-soft)}
+.empty{color:var(--muted);text-align:center;padding:36px 12px}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:inherit;font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--rule-2);background:transparent;color:var(--ink);cursor:pointer}
+.chip.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.note{font-size:.84rem;color:var(--muted)}
+.err{color:var(--bad);font-weight:600}
+footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:8px 14px;border-radius:8px;font-size:.85rem;z-index:5}
+@media (max-width:900px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.cause{grid-template-columns:1fr auto}.cause .track{grid-column:1/-1;grid-row:2}.oim{grid-template-columns:1fr}.oim dt{padding-top:6px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1><span class="mark" aria-hidden="true">V</span>Variance</h1>
+      <p class="tag">Find out why the count is off.</p>
+    </div>
+    <span class="by">by <a href="../">Ian Kachadorian · Duality</a></span>
+  </header>
+
+  <section class="sheet" aria-labelledby="in-h">
+    <h2 id="in-h">Load a cycle count</h2>
+    <p class="sub">One row per counted location: SKU, location, system quantity, counted quantity and unit cost. Counter, count date and last movement date make the root causes sharper. Your file never leaves this browser.</p>
+    <div class="bar">
+      <button id="sample">Load sample count</button>
+      <label class="btn ghost" for="file">Upload CSV</label><input id="file" type="file" accept=".csv,text/csv">
+      <button class="ghost" id="pasteBtn">Paste CSV</button>
+      <div class="field"><label for="thr">Write-up threshold</label><input id="thr" type="number" min="0" step="50" value="1000"></div>
+      <div class="field"><label for="days">Recent movement (days)</label><input id="days" type="number" min="0" max="30" step="1" value="3"></div>
+    </div>
+    <div id="pasteBox" hidden>
+      <textarea id="paste" aria-label="Paste CSV" placeholder="location,sku,system_qty,counted_qty,unit_cost&#10;A-01-01,FLT-1042,24,24,6.85"></textarea>
+      <div><button class="tiny" id="pasteGo">Analyze pasted data</button></div>
+    </div>
+    <div id="mapBox" hidden></div>
+    <div id="msg" class="note" role="status"></div>
+  </section>
+
+  <div id="out"></div>
+
+  <footer>
+    <span><b>How it works.</b> Gross accuracy is 1 − (sum of absolute variance dollars ÷ book value); net accuracy lets overages and shortages offset. Each variance line is checked against common causes in order: mislocated stock (the same SKU over in one slot and short in another), unit-of-measure errors (exact pack multiples), transposed digits, look-alike swaps in the same aisle, timing (movement just before the count), empty and found locations, and counters with an unusually high variance rate.</span>
+    <span>The sample count is synthetic. Built by <a href="../">Ian Kachadorian</a> · <a href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance">source</a></span>
+  </footer>
+</div>
+
+<script src="engine.js"></script>
+<script>
+(function(){
+const E = window.VarianceEngine;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = (n, cents=false) => (n < 0 ? "−$" : "$") + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:cents?2:0,maximumFractionDigits:cents?2:0});
+const pct = n => n == null ? "—" : (n*100).toFixed(2) + "%";
+const qtyS = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en-US");
+
+let raw = null, map = null, result = null, filter = null, source = "";
+
+function toast(m){ const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),1800); }
+
+function load(text, label){
+  const rows = E.parseCSV(text);
+  if (rows.length < 2){ $("#msg").innerHTML = '<span class="err">That file has no data rows. Check that it is a CSV with a header row.</span>'; return; }
+  raw = { headers: rows[0], rows: rows.slice(1) }; source = label;
+  map = E.guessMapping(raw.headers);
+  const missing = Object.entries(E.FIELDS).filter(([k,f]) => f.required && map[k] == null);
+  if (missing.length) { showMapping(missing.map(([,f]) => f.label)); $("#out").innerHTML = ""; return; }
+  $("#mapBox").hidden = true; run();
+}
+
+function showMapping(missing){
+  const opts = ['<option value="">— not in file —</option>'].concat(raw.headers.map((h,i)=>`<option value="${i}">${esc(h)}</option>`)).join("");
+  $("#mapBox").innerHTML = `<p class="note">${missing ? `Match these columns to continue: <b>${missing.map(esc).join(", ")}</b>.` : "Check how your columns are matched."}</p>
+    <div class="map">${Object.entries(E.FIELDS).map(([k,f]) => `<div class="field"><label for="m-${k}">${esc(f.label)}${f.required?" *":""}</label><select id="m-${k}" data-k="${k}">${opts}</select></div>`).join("")}</div>
+    <div><button class="tiny" id="mapGo">Analyze</button></div>`;
+  Object.keys(E.FIELDS).forEach(k => { const s = $("#m-"+k); if (map[k] != null) s.value = String(map[k]); });
+  $("#mapBox").hidden = false;
+}
+
+function run(){
+  const { records, skipped } = E.buildRecords(raw.rows, map);
+  if (!records.length){ $("#msg").innerHTML = '<span class="err">No rows had a SKU, location, both quantities and a unit cost. Check the column matching.</span>'; showMapping(); return; }
+  result = E.analyze(records, { threshold: +$("#thr").value || 0, recentDays: +$("#days").value || 0 });
+  filter = null;
+  $("#msg").innerHTML = `Analyzed <b>${records.length.toLocaleString()}</b> lines from ${esc(source)}.` + (skipped.length ? ` Skipped ${skipped.length} incomplete row${skipped.length>1?"s":""} (line ${skipped.slice(0,5).join(", ")}${skipped.length>5?"…":""}).` : "") + ` <button class="tiny ghost" id="remap">Check column matching</button>`;
+  render();
+}
+
+function paretoChart(p, for80){
+  const top = p.slice(0, 15); if (!top.length) return "";
+  const W=520,H=250,L=52,R=36,T=14,B=48, n=top.length;
+  const max = Math.abs(top[0].dollars) || 1, bw = (W-L-R)/n;
+  const y = v => T + (H-T-B)*(1 - v/max), yc = s => T + (H-T-B)*(1 - s);
+  const step = niceStep(max);
+  let grid=""; for (let v=0; v<=max+1e-9; v+=step) grid += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${shortMoney(v)}</text>`;
+  [0,.5,.8,1].forEach(s => grid += `<text x="${W-R+6}" y="${yc(s)+4}" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${s*100}%</text>`);
+  const bars = top.map((v,i)=>`<rect x="${L+i*bw+3}" y="${y(Math.abs(v.dollars))}" width="${Math.max(2,bw-6)}" height="${H-B-y(Math.abs(v.dollars))}" fill="${v.dollars<0?"var(--bad)":"var(--good)"}" opacity=".85"><title>${esc(v.sku)} at ${esc(v.location)}: ${money(v.dollars,true)}</title></rect><text x="${L+i*bw+bw/2}" y="${H-B+14}" text-anchor="end" transform="rotate(-40 ${L+i*bw+bw/2} ${H-B+14})" font-size="9" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${esc(v.location)}</text>`).join("");
+  const pts = top.map((v,i)=>`${(L+i*bw+bw/2).toFixed(1)},${yc(v.cumShare).toFixed(1)}`).join(" ");
+  const k = Math.min(for80, n) - 1;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Pareto chart of the 15 largest variances by dollar value with cumulative share">
+    ${grid}<line x1="${L}" x2="${W-R}" y1="${yc(.8)}" y2="${yc(.8)}" stroke="var(--accent)" stroke-dasharray="4 4" opacity=".7"/>
+    ${bars}<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    ${top.map((v,i)=>`<circle cx="${L+i*bw+bw/2}" cy="${yc(v.cumShare)}" r="${i===k?4.5:2.5}" fill="var(--accent)"/>`).join("")}
+  </svg>`;
+}
+function niceStep(max){ const raw = max/4, p = Math.pow(10, Math.floor(Math.log10(raw||1))); return [1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw) || raw; }
+function shortMoney(v){ return v>=1000 ? "$"+(v/1000).toFixed(v%1000?1:0)+"k" : "$"+Math.round(v); }
+
+function render(){
+  const r = result, s = r.summary;
+  if (!r.variances.length){ $("#out").innerHTML = `<section class="sheet"><div class="empty"><b>Every line matched.</b><br>${s.lines.toLocaleString()} locations counted, no variances.</div></section>`; return; }
+  const flagged = r.variances.filter(v => Math.abs(v.dollars) >= r.threshold);
+  const top = r.byPattern.filter(p => p.key!=="unexplained")[0];
+  const shown = filter ? r.variances.filter(v => v.pattern === filter) : r.variances;
+  $("#out").innerHTML = `
+  <div class="tiles">
+    <div class="tile"><div class="k">Gross accuracy</div><div class="v">${pct(s.grossAccuracy)}</div><div class="d">of ${money(s.bookValue)} book</div></div>
+    <div class="tile"><div class="k">Net accuracy</div><div class="v">${pct(s.netAccuracy)}</div><div class="d">overs and shorts offset</div></div>
+    <div class="tile"><div class="k">Gross variance</div><div class="v">${money(s.gross)}</div><div class="d">absolute dollars</div></div>
+    <div class="tile"><div class="k">Net variance</div><div class="v ${s.net<0?"neg":"pos"}">${money(s.net)}</div><div class="d">${s.net<0?"short":"over"} overall</div></div>
+    <div class="tile"><div class="k">Locations accurate</div><div class="v">${(s.locationAccuracy*100).toFixed(1)}%</div><div class="d">${s.varianceLines} of ${s.lines.toLocaleString()} off</div></div>
+    <div class="tile"><div class="k">Need a write-up</div><div class="v ${s.overThreshold?"neg":""}">${s.overThreshold}</div><div class="d">at or over ${money(r.threshold)}</div></div>
+  </div>
+
+  <div class="grid2">
+    <section class="sheet" aria-labelledby="p-h">
+      <h2 id="p-h">Where the dollars are</h2>
+      <p class="sub"><b>${r.for80} line${r.for80===1?"":"s"}</b> drive 80% of gross variance. Bars are the 15 largest lines; the line is the running share.</p>
+      ${paretoChart(r.pareto, r.for80)}
+    </section>
+    <section class="sheet" aria-labelledby="c-h">
+      <h2 id="c-h">Likely causes</h2>
+      <p class="sub">${top ? `<b>${esc(top.name)}</b> is the biggest explained driver at ${money(top.gross)} gross.` : "No common pattern matched these variances."} Tap a cause to filter the lines below.</p>
+      <div class="causes">${r.byPattern.map(p=>`<button class="cause ${filter===p.key?"on":""}" data-p="${p.key}" aria-pressed="${filter===p.key}">
+        <span class="cname">${esc(p.name)}<small>${p.count} line${p.count===1?"":"s"}</small></span>
+        <span class="track" aria-hidden="true"><i style="width:${(p.gross/s.gross*100).toFixed(1)}%"></i></span>
+        <span class="camt">${money(p.gross)}<small>${(p.gross/s.gross*100).toFixed(0)}% of gross</small></span></button>`).join("")}</div>
+    </section>
+  </div>
+
+  <section class="sheet" aria-labelledby="f-h">
+    <div class="bar" style="justify-content:space-between"><h2 id="f-h">Needs a written root cause</h2>${flagged.length?`<button class="tiny ghost" id="copyAll">Copy all ${flagged.length}</button>`:""}</div>
+    <p class="sub">Lines at or over ${money(r.threshold)}, each with a drafted explanation in observation, mechanism, implication form. Verify before you submit it.</p>
+    ${flagged.length ? flagged.map((v,i)=>{ const x = E.explain(v); return `<article class="flag">
+      <div class="top"><span class="who"><span class="loc">${esc(v.location)}</span><b>${esc(v.sku)}</b><span class="note">${esc(v.description)}</span></span>
+      <span class="who"><span class="pill p-${v.pattern}">${esc(E.PATTERNS[v.pattern].short)}</span><span class="num ${v.dollars<0?"neg":"pos"}">${money(v.dollars,true)}</span><button class="tiny ghost" data-copy="${i}">Copy</button></span></div>
+      <dl class="oim"><dt>Observation</dt><dd>${esc(x.observation)}</dd><dt>Mechanism</dt><dd>${esc(x.mechanism)}</dd><dt>Implication</dt><dd>${esc(x.implication)}</dd></dl></article>`; }).join("")
+      : `<div class="empty">No single line reaches ${money(r.threshold)}. Lower the threshold to draft explanations for smaller lines.</div>`}
+  </section>
+
+  ${r.counters.length ? `<section class="sheet" aria-labelledby="k-h">
+    <h2 id="k-h">Counters</h2>
+    <p class="sub">Team variance rate is ${(r.teamRate*100).toFixed(1)}%. ${r.flaggedCounters.length ? `<b>${r.flaggedCounters.map(esc).join(", ")}</b> ${r.flaggedCounters.length>1?"are":"is"} well above it, so ${r.flaggedCounters.length>1?"their":"that"} unexplained lines are treated as counting errors.` : "No counter stands out."}</p>
+    <div class="scroll"><table><thead><tr><th>Counter</th><th class="r">Lines</th><th class="r">With variance</th><th class="r">Rate</th><th class="r">Gross $</th></tr></thead><tbody>
+    ${r.counters.map(c=>`<tr class="${r.flaggedCounters.includes(c.counter)?"hot":""}"><td>${esc(c.counter)}</td><td class="r">${c.lines}</td><td class="r">${c.variances}</td><td class="r">${(c.rate*100).toFixed(1)}%</td><td class="r">${money(c.gross)}</td></tr>`).join("")}
+    </tbody></table></div></section>` : ""}
+
+  <section class="sheet" aria-labelledby="a-h">
+    <div class="bar" style="justify-content:space-between"><h2 id="a-h">All variance lines</h2><button class="tiny ghost" id="export">Download results CSV</button></div>
+    <div class="filters"><button class="chip ${!filter?"on":""}" data-p="" aria-pressed="${!filter}">All ${r.variances.length}</button>${r.byPattern.map(p=>`<button class="chip ${filter===p.key?"on":""}" data-p="${p.key}" aria-pressed="${filter===p.key}">${esc(p.short)} ${p.count}</button>`).join("")}</div>
+    <div class="scroll"><table><thead><tr><th>Location</th><th>SKU</th><th>Cause</th><th class="r">System</th><th class="r">Counted</th><th class="r">Units</th><th class="r">Dollars</th></tr></thead><tbody>
+    ${shown.map(v=>`<tr><td><span class="loc">${esc(v.location)}</span></td><td>${esc(v.sku)}${v.description?`<br><span class="note">${esc(v.description)}</span>`:""}</td><td><span class="pill p-${v.pattern}">${esc(E.PATTERNS[v.pattern].short)}</span>${v.partner?`<br><span class="note">↔ ${esc(v.partner)}</span>`:""}</td><td class="r">${v.system.toLocaleString()}</td><td class="r">${v.counted.toLocaleString()}</td><td class="r ${v.qty<0?"neg":"pos"}">${qtyS(v.qty)}</td><td class="r ${v.dollars<0?"neg":"pos"}">${money(v.dollars,true)}</td></tr>`).join("")}
+    </tbody></table></div>
+  </section>`;
+}
+
+function copy(text){
+  const done = () => toast("Copied");
+  try { navigator.clipboard.writeText(text).then(done, () => fallback(text)); } catch(e){ fallback(text); }
+}
+function fallback(text){ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand("copy"); toast("Copied");}catch(e){toast("Select the text and copy it");} t.remove(); }
+
+function exportCSV(){
+  const rows = [["location","sku","description","system_qty","counted_qty","variance_units","unit_cost","variance_dollars","likely_cause","paired_with","counter","explanation"]];
+  result.variances.forEach(v => rows.push([v.location,v.sku,v.description,v.system,v.counted,v.qty,v.cost,v.dollars.toFixed(2),E.PATTERNS[v.pattern].name,v.partner||"",v.counter,E.explain(v).text.replace(/\n/g," ")]));
+  const blob = new Blob([E.toCSV(rows)], {type:"text/csv"}), a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "variance-results.csv"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.id === "sample") load(E.sampleCSV(), "the sample count");
+  else if (t.id === "pasteBtn") { $("#pasteBox").hidden = !$("#pasteBox").hidden; if (!$("#pasteBox").hidden) $("#paste").focus(); }
+  else if (t.id === "pasteGo") { const v = $("#paste").value.trim(); if (!v){ $("#paste").focus(); return; } load(v, "pasted data"); }
+  else if (t.id === "mapGo") { map = {}; document.querySelectorAll("#mapBox select").forEach(s => { if (s.value !== "") map[s.dataset.k] = +s.value; });
+    const miss = Object.entries(E.FIELDS).filter(([k,f]) => f.required && map[k] == null);
+    if (miss.length) { toast("Match " + miss.map(([,f]) => f.label).join(", ")); return; }
+    $("#mapBox").hidden = true; run(); }
+  else if (t.id === "remap") showMapping();
+  else if (t.dataset.p !== undefined && result) { filter = t.dataset.p ? (filter === t.dataset.p && t.classList.contains("cause") ? null : t.dataset.p) : null; render(); }
+  else if (t.dataset.copy !== undefined) { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(E.explain(f[+t.dataset.copy]).text); }
+  else if (t.id === "copyAll") { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(f.map(v => E.explain(v).text).join("\n\n")); }
+  else if (t.id === "export") exportCSV();
+});
+$("#file").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => load(rd.result, f.name); rd.readAsText(f); e.target.value = ""; });
+["#thr","#days"].forEach(id => $(id).addEventListener("change", () => { if (raw && map) run(); }));
+
+load(E.sampleCSV(), "the sample count");
+})();
+</script>
+</body>
+</html>
