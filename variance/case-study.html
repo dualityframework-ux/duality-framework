@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Variance case study — automating the weekly variance write-up</title>
+<meta name="description" content="How I turned the weekly cycle count variance write-up into a tool: measure, prioritize by dollars, classify the root cause, and draft the explanation.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Variance case study — automating the weekly variance write-up">
+<meta property="og:description" content="Measure, prioritize by dollars, classify the root cause, draft the explanation. By Ian Kachadorian.">
+<meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/variance/preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23facc15'/%3E%3Cpath d='M18 18l14 30 14-30' fill='none' stroke='%231c1917' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,800;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single readable column, like an audit memo, with the numbers set in mono */
+:root{
+  --bg:#f5f4f0; --sheet:#ffffff; --ink:#1c1917; --muted:#5f5a52; --rule:#dedad2;
+  --accent:#c2410c; --accent-soft:#fbe9df; --label:#facc15; --label-ink:#1c1917;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141210; --sheet:#1c1a17; --ink:#ede9e2; --muted:#a8a196; --rule:#34302a;
+  --accent:#fb923c; --accent-soft:#3a2416; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;font:17px/1.65 var(--f-body)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:46rem;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.crumb{font-size:.85rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:600;margin:34px 0 6px}
+h1{font-size:clamp(2rem,6vw,2.8rem);line-height:1.1;letter-spacing:-.03em;font-weight:800;margin:0 0 14px;text-wrap:balance}
+.dek{font-size:1.15rem;color:var(--muted);margin:0 0 20px}
+.meta{font-size:.85rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--rule)}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:40px 0 10px;text-wrap:balance}
+h3{font-size:1.05rem;margin:26px 0 6px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:1.3rem}
+li{margin-bottom:6px}
+.num,code{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:.92em}
+.loc{font-family:var(--f-num);font-weight:600;font-size:.82em;background:var(--label);color:var(--label-ink);padding:1px 6px;border-radius:3px}
+.callout{background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--accent);border-radius:8px;padding:14px 16px;margin:18px 0}
+.callout p:last-child{margin:0}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.stat{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:12px}
+.stat .v{font-family:var(--f-num);font-size:1.4rem;font-weight:600}
+.stat .k{font-size:.8rem;color:var(--muted)}
+.scroll{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--muted)}
+td{padding:8px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+td.r,th.r{text-align:right;font-family:var(--f-num)}
+.oim{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;font-size:.95rem}
+.oim p{margin:0 0 8px}.oim p:last-child{margin:0}.oim b{color:var(--accent)}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px;padding-top:22px;border-top:1px solid var(--rule)}
+.btn{display:inline-block;font-weight:600;text-decoration:none;border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:8px;padding:10px 16px}
+.btn.ghost{background:transparent;color:var(--ink)}
+@media (max-width:520px){.stats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="crumb" aria-label="Breadcrumb"><a href="../">Duality</a><span>/</span><a href="./">Variance</a><span>/</span><span>Case study</span></nav>
+
+  <p class="eyebrow">Case study</p>
+  <h1>Automating the weekly variance write-up</h1>
+  <p class="dek">How I turned the most repetitive part of inventory control, explaining why the count was off, into a tool that does the first pass.</p>
+  <div class="meta"><span>Ian Kachadorian</span><span>October 2026</span><span>6 min read</span></div>
+
+  <h2>The problem</h2>
+  <p>Every week I research more than 150 inventory discrepancies in a distribution center, averaging around $30,000 in gross adjustments. Any variance over $1,000 needs a written root cause in the weekly audit response.</p>
+  <p>Most of that time is not detective work. It is recognizing patterns I have seen hundreds of times:</p>
+  <ul>
+    <li>The same part is short 12 in one slot and over 12 in the slot next to it.</li>
+    <li>A box of 12 was counted as one.</li>
+    <li>Someone keyed 64 when the shelf held 46.</li>
+    <li>Two headlight bulbs that look identical are each off by the same amount, in opposite directions.</li>
+  </ul>
+  <p>Pattern recognition that a person does the same way every week is exactly what a tool should do first. The person's time should go to the variances that do not fit a pattern.</p>
+
+  <h2>The approach</h2>
+  <p>I built Variance around the same four steps I follow by hand.</p>
+
+  <h3>1. Measure both ways</h3>
+  <p>Gross accuracy counts every dollar of variance. Net accuracy lets overages cancel shortages. Reporting only net hides problems, so Variance shows both.</p>
+  <div class="stats" role="list">
+    <div class="stat" role="listitem"><div class="v">99.01%</div><div class="k">Net accuracy on the sample</div></div>
+    <div class="stat" role="listitem"><div class="v">94.32%</div><div class="k">Gross accuracy on the same count</div></div>
+    <div class="stat" role="listitem"><div class="v">$11,562</div><div class="k">Gross variance behind a $2,006 net</div></div>
+  </div>
+  <p>A 99% net looks clean. The gross number shows more than $11,000 of stock sitting in the wrong place or recorded wrong.</p>
+
+  <h3>2. Prioritize by dollars</h3>
+  <p>A Pareto view ranks every line by absolute dollar impact. In the sample, 9 of 28 variance lines account for 80% of the gross. Those get looked at first.</p>
+
+  <h3>3. Classify the likely cause</h3>
+  <p>Each variance is checked against eight causes, in a deliberate order. The order matters because one real problem can look like two different ones:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Order</th><th>Cause</th><th>Why it comes here</th></tr></thead>
+    <tbody>
+      <tr><td class="r">1</td><td>Mislocated stock</td><td>A battery short at <span class="loc">C-14-02</span> and over at <span class="loc">C-15-04</span> is one move, not an empty slot and a found slot. Checking pairs first prevents two wrong write-ups.</td></tr>
+      <tr><td class="r">2</td><td>Unit of measure</td><td>An exact pack multiple, like 300 against 25, is unambiguous. Requiring a difference of at least 5 units keeps small miscounts out.</td></tr>
+      <tr><td class="r">3</td><td>Transposed digits</td><td>Same digits, different order. Only checked for two-digit quantities and up.</td></tr>
+      <tr><td class="r">4</td><td>Look-alike swap</td><td>Two different SKUs in the same aisle, off by about the same amount in opposite directions.</td></tr>
+      <tr><td class="r">5</td><td>Timing</td><td>Movement within a few days of the count, so a transaction may not have posted.</td></tr>
+      <tr><td class="r">6–7</td><td>Empty and found</td><td>Only after the pairing checks, so they are not mistaken for halves of a move.</td></tr>
+      <tr><td class="r">8</td><td>Counter accuracy</td><td>Last on purpose. Blaming the count is a judgment about a person, so it applies only to lines nothing else explains, and only for a counter whose variance rate is well above the team's.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>4. Draft the explanation</h3>
+  <p>For every line over the threshold, Variance writes a first draft in the same structure I use for every analysis: observation, mechanism, implication.</p>
+  <div class="oim">
+    <p><b>Observation.</b> BAT-5100 (Battery, group 24F) at C-14-02: system 18, counted 6, a variance of −12 units (−$1,704.00).</p>
+    <p><b>Mechanism.</b> The same item is short in one location and over by about the same amount in another, which points to a put-away or replenishment move that went to the wrong slot. The offsetting variance is at C-15-04.</p>
+    <p><b>Implication.</b> Move the stock back to its home location and correct both locations in one transfer, not two adjustments. Review the put-away that touched both slots.</p>
+  </div>
+
+  <h2>The result</h2>
+  <p>I tested it on a synthetic count of 164 lines with 14 problems planted in it: two mislocations, two unit-of-measure errors, a transposition, a look-alike swap, two timing issues, two empty locations, a found location, and one counter with a high error rate.</p>
+  <ul>
+    <li><b>All 14 were classified correctly,</b> and the counter was flagged. An automated test checks this on every change.</li>
+    <li><b>It also found something I did not plant:</b> a serpentine belt over 3 in one aisle and short 3 in another. That came from the random noise in the sample, and it is exactly what a real offsetting pair looks like. Whether a 3-unit pair is worth a transfer is a judgment call, which is the point: the tool surfaces it and a person decides.</li>
+    <li><b>The four lines over $1,000 come with drafted write-ups</b> ready to verify and paste.</li>
+  </ul>
+
+  <h2>The limits</h2>
+  <ul>
+    <li><b>These are rules, not a model.</b> The tolerances (pairs within 10–15%, swaps in the same aisle) are judgment calls from experience. Different warehouses would want different settings.</li>
+    <li><b>It only sees the count.</b> Without transaction history it can say a variance looks like a mislocation, not prove it. Every draft is a starting point to verify.</li>
+    <li><b>Timing needs data.</b> The timing check only works if the export includes a last-movement date.</li>
+    <li><b>It has only seen synthetic data.</b> No employer data was used to build or test it.</li>
+  </ul>
+
+  <h2>What I would build next</h2>
+  <ol>
+    <li>Pull transaction history to confirm a cause instead of inferring it.</li>
+    <li>Learn the tolerances from write-ups a person has confirmed, so the rules fit each building.</li>
+    <li>Generate the recount list automatically: which locations to recount, in walking order.</li>
+  </ol>
+
+  <div class="callout"><p><b>Built with</b> plain JavaScript and no dependencies. The analysis logic lives in one file of pure functions, tested in Node and run on every push with GitHub Actions. Files never leave the browser.</p></div>
+
+  <div class="cta"><a class="btn" href="./">Try Variance</a><a class="btn ghost" href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance">Read the code</a><a class="btn ghost" href="../">More from Duality</a></div>
+</main>
+</body>
+</html>

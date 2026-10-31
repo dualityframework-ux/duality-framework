@@ -1,6 +1,6 @@
 # Variance
 
-**Find out why the count is off.** [Try it live](https://dualityframework-ux.github.io/duality-framework/variance/)
+**Find out why the count is off.** [Try it live](https://dualityframework-ux.github.io/duality-framework/variance/) · [Read the case study](https://dualityframework-ux.github.io/duality-framework/variance/case-study.html)
 
 Variance takes a cycle count export and answers the three questions an inventory control team actually gets asked:
 
