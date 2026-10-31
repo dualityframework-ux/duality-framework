@@ -42,6 +42,18 @@ assert.deepStrictEqual(tricky, [["a", "b"], ["x, y", 'he said "hi"']]);
 const ex = E.explain(find("BAT-5100", "C-14-02"));
 assert.ok(ex.observation.includes("system 18") && ex.mechanism.includes("C-15-04"));
 
+// walking order: aisles in order, bays alternate direction (serpentine)
+assert.deepStrictEqual(
+  E.walkingOrder(["B-02-01", "A-10-01", "A-02-03", "B-15-02", "A-02-01", "C-05-01", "C-01-01"]),
+  ["A-02-01", "A-02-03", "A-10-01", "B-15-02", "B-02-01", "C-01-01", "C-05-01"]
+);
+// recount sheet: includes every planted line and keeps pairs, in walking order
+const rc = E.recountList(r, { minDollars: 25 });
+for (const [sku, loc] of expect) assert.ok(rc.rows.some(x => x.sku === sku && x.location === loc), `recount includes ${sku} at ${loc}`);
+assert.ok(rc.rows.every(x => x.reason), "every recount row has a reason");
+const locs = rc.rows.map(x => x.location);
+assert.deepStrictEqual([...new Set(locs)], E.walkingOrder([...new Set(locs)]), "recount rows follow walking order");
+
 console.log("all checks passed");
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),

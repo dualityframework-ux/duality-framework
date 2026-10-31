@@ -241,6 +241,49 @@
     return { observation, mechanism, implication: p.action, text: `Observation: ${observation}\nMechanism: ${mechanism}\nImplication: ${p.action}` };
   }
 
+  // ---------- recount sheet in walking order ----------
+  // Why each cause gets recounted, in the counter's words.
+  const RECOUNT_REASON = {
+    mislocated: "Verify both slots before the transfer",
+    uom: "Recount in the stocking unit",
+    transposed: "Recount; void if it matches system",
+    swap: "Count both look-alike items together",
+    timing: "Recount after open transactions post",
+    empty: "Check overflow and nearby slots",
+    found: "Confirm item and quantity",
+    counter: "Second counter recount",
+    unexplained: "Recount",
+  };
+
+  // "A-12-03" -> aisle "A", bay 12, level 3. Falls back to plain text sorting.
+  function parseLocation(loc) {
+    const parts = String(loc).split(/[-_.\s]/).filter(Boolean);
+    const n = s => { const v = parseInt(s, 10); return isNaN(v) ? null : v; };
+    return { aisle: (parts[0] || "").toUpperCase(), bay: n(parts[1]), level: n(parts[2]), raw: String(loc) };
+  }
+
+  // Serpentine path: walk aisles in order, alternating bay direction so the counter never backtracks.
+  function walkingOrder(locs) {
+    const aisles = [...new Set(locs.map(l => parseLocation(l).aisle))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    const dir = Object.fromEntries(aisles.map((a, i) => [a, i % 2 === 0 ? 1 : -1]));
+    return [...locs].sort((x, y) => {
+      const a = parseLocation(x), b = parseLocation(y);
+      if (a.aisle !== b.aisle) return aisles.indexOf(a.aisle) - aisles.indexOf(b.aisle);
+      if (a.bay !== b.bay) return ((a.bay ?? 0) - (b.bay ?? 0)) * dir[a.aisle];
+      if (a.level !== b.level) return (a.level ?? 0) - (b.level ?? 0);
+      return a.raw.localeCompare(b.raw);
+    });
+  }
+
+  function recountList(result, opts = {}) {
+    const min = opts.minDollars ?? 25;
+    const picked = result.variances.filter(v => Math.abs(v.dollars) >= min || v.pattern === "counter" || v.pattern === "mislocated" || v.pattern === "swap");
+    const order = walkingOrder([...new Set(picked.map(v => v.location))]);
+    const rows = [];
+    order.forEach(loc => picked.filter(v => v.location === loc).forEach(v => rows.push({ ...v, reason: RECOUNT_REASON[v.pattern] })));
+    return { rows, aisles: new Set(rows.map(r => parseLocation(r.location).aisle)).size, minDollars: min };
+  }
+
   // ---------- sample data (synthetic; planted patterns for the demo) ----------
   function sampleCSV(seedDate) {
     let s = 20261031; const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296;
@@ -288,6 +331,6 @@
     return toCSV(rows);
   }
 
-  const api = { parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money };
+  const api = { parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.VarianceEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

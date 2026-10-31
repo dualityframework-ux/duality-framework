@@ -100,6 +100,16 @@ tr.hot td{background:var(--bad-soft)}
 .note{font-size:.84rem;color:var(--muted)}
 .err{color:var(--bad);font-weight:600}
 footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem;padding-bottom:8px}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.blank{display:inline-block;width:5rem;border-bottom:1px solid var(--muted);height:1.1em}
+@media print{
+  body.print-recount .wrap > *:not(#out), body.print-recount #out > *:not(#recount), body.print-recount .noprint{display:none!important}
+  body.print-recount{background:#fff;color:#000;font-size:11pt}
+  body.print-recount .sheet{border:0;padding:0}
+  body.print-recount .loc{border:1px solid #000;background:#fff}
+  body.print-recount td{padding:10px 6px}
+}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:8px 14px;border-radius:8px;font-size:.85rem;z-index:5}
 @media (max-width:900px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
 @media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.cause{grid-template-columns:1fr auto}.cause .track{grid-column:1/-1;grid-row:2}.oim{grid-template-columns:1fr}.oim dt{padding-top:6px}}
@@ -153,7 +163,7 @@ const money = (n, cents=false) => (n < 0 ? "−$" : "$") + Math.abs(n).toLocaleS
 const pct = n => n == null ? "—" : (n*100).toFixed(2) + "%";
 const qtyS = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en-US");
 
-let raw = null, map = null, result = null, filter = null, source = "";
+let raw = null, map = null, result = null, filter = null, source = "", recountMin = 25, blind = true;
 
 function toast(m){ const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),1800); }
 
@@ -247,6 +257,16 @@ function render(){
       : `<div class="empty">No single line reaches ${money(r.threshold)}. Lower the threshold to draft explanations for smaller lines.</div>`}
   </section>
 
+  ${(()=>{ const rc = E.recountList(r, { minDollars: recountMin }); return `<section class="sheet" id="recount" aria-labelledby="r-h">
+    <div class="bar" style="justify-content:space-between"><h2 id="r-h">Recount sheet</h2><span class="bar noprint"><button class="tiny ghost" id="printRc">Print</button><button class="tiny ghost" id="dlRc">Download CSV</button></span></div>
+    <p class="sub"><b>${rc.rows.length} location${rc.rows.length===1?"":"s"}</b> across ${rc.aisles} aisle${rc.aisles===1?"":"s"}, in walking order: aisles in sequence, alternating direction so nobody backtracks. Includes every line over the minimum, both halves of every pair, and every line from a flagged counter.</p>
+    <div class="bar noprint"><div class="field"><label for="rcMin">Minimum dollars</label><input id="rcMin" type="number" min="0" step="5" value="${recountMin}"></div>
+      <label class="check"><input type="checkbox" id="blind" ${blind?"checked":""}> Blind recount (hide system quantity)</label></div>
+    ${rc.rows.length ? `<div class="scroll"><table class="rc"><thead><tr><th class="r">#</th><th>Location</th><th>SKU</th><th>Why</th>${blind?"":'<th class="r">System</th>'}<th class="r">Recount</th></tr></thead><tbody>
+    ${rc.rows.map((v,i)=>`<tr><td class="r">${i+1}</td><td><span class="loc">${esc(v.location)}</span></td><td>${esc(v.sku)}${v.description?`<br><span class="note">${esc(v.description)}</span>`:""}</td><td>${esc(v.reason)}</td>${blind?"":`<td class="r">${v.system.toLocaleString()}</td>`}<td class="r"><span class="blank" aria-label="write recount here"></span></td></tr>`).join("")}
+    </tbody></table></div>` : `<div class="empty">Nothing to recount at this minimum.</div>`}
+  </section>`; })()}
+
   ${r.counters.length ? `<section class="sheet" aria-labelledby="k-h">
     <h2 id="k-h">Counters</h2>
     <p class="sub">Team variance rate is ${(r.teamRate*100).toFixed(1)}%. ${r.flaggedCounters.length ? `<b>${r.flaggedCounters.map(esc).join(", ")}</b> ${r.flaggedCounters.length>1?"are":"is"} well above it, so ${r.flaggedCounters.length>1?"their":"that"} unexplained lines are treated as counting errors.` : "No counter stands out."}</p>
@@ -296,9 +316,18 @@ document.addEventListener("click", e => {
   else if (t.id === "copyAll") { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(f.map(v => E.explain(v).text).join("\n\n")); }
   else if (t.id === "export") exportCSV();
   else if (t.id === "sampleDl") download(E.sampleCSV(), "variance-sample-count.csv");
+  else if (t.id === "printRc") { document.body.classList.add("print-recount"); window.print(); setTimeout(()=>document.body.classList.remove("print-recount"), 500); }
+  else if (t.id === "dlRc") { const rc = E.recountList(result, { minDollars: recountMin });
+    const rows = [["step","location","sku","description","reason"].concat(blind?[]:["system_qty"]).concat(["recount_qty","counter_initials"])];
+    rc.rows.forEach((v,i)=>rows.push([i+1,v.location,v.sku,v.description,v.reason].concat(blind?[]:[v.system]).concat(["",""])));
+    download(E.toCSV(rows), "variance-recount-sheet.csv"); }
 });
 $("#file").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => load(rd.result, f.name); rd.readAsText(f); e.target.value = ""; });
 ["#thr","#days"].forEach(id => $(id).addEventListener("change", () => { if (raw && map) run(); }));
+document.addEventListener("change", e => {
+  if (e.target.id === "rcMin") { recountMin = Math.max(0, +e.target.value || 0); render(); $("#rcMin").focus(); }
+  if (e.target.id === "blind") { blind = e.target.checked; render(); $("#blind").focus(); }
+});
 
 load(E.sampleCSV(), "the sample count");
 })();
