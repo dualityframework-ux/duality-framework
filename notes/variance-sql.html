@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Three SQL queries that explain a cycle count · Duality</title>
+<meta name="description" content="Variance's analysis, written in plain SQLite: a window function for the Pareto, a self-join for mislocated stock, and a join across two counts to find repeat variances. With real results from the sample count.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Three SQL queries that explain a cycle count">
+<meta property="og:description" content="A window function, a self-join and a join across two counts, with real results. By Ian Kachadorian.">
+<meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/variance/preview.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://dualityframework-ux.github.io/duality-framework/notes/variance-sql.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<style>
+.sql{font-family:var(--f-num);font-size:.84rem;line-height:1.55;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0 18px;overflow-x:auto}
+.sql code{font:inherit}
+tr.hit td{color:var(--accent);font-weight:600}
+.scroll td{white-space:nowrap}
+/* Layout: a single readable column in the Duality palette; numbers in mono */
+:root{color-scheme:dark;--bg:#0a0a11;--surface:#15131e;--line:#302b3b;--fg:#f4f2ff;--muted:#aaa7bb;--accent:#ad91ff;--good:#7fd1a8;--bad:#f2a0a0;
+  --f-body:system-ui,-apple-system,"Segoe UI",sans-serif;--f-num:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.7 var(--f-body)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.wrap{max-width:42rem;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:28px 72px}
+.crumb{font-size:.88rem;color:var(--muted)}
+.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.18em;font-size:.74rem;font-weight:700;margin:40px 0 8px}
+h1{font-size:clamp(2rem,6vw,2.8rem);line-height:1.08;letter-spacing:-.035em;margin:0 0 14px;text-wrap:balance}
+.dek{color:var(--muted);font-size:1.15rem;margin:0 0 18px}
+.meta{font-size:.86rem;color:var(--muted);padding-bottom:22px;border-bottom:1px solid var(--line)}
+h2{font-size:1.35rem;letter-spacing:-.02em;margin:40px 0 10px;text-wrap:balance}
+p{margin:0 0 16px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:.92em}
+.formula{font-family:var(--f-num);font-size:.92rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0 18px;overflow-x:auto;white-space:pre}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.compare>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.compare .v{font-family:var(--f-num);font-size:2rem;font-weight:700;letter-spacing:-.02em}
+.compare .k{color:var(--muted);font-size:.9rem}
+.scroll{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th{text-align:left;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--muted)}
+td{padding:8px 6px;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.callout{border-left:3px solid var(--accent);background:var(--surface);border-radius:8px;padding:14px 16px;margin:20px 0}
+.callout p:last-child{margin:0}
+.end{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.95rem}
+@media(max-width:520px){.compare{grid-template-columns:1fr}.formula{font-size:.78rem}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="crumb" aria-label="Breadcrumb"><a href="../">Duality</a> / <a href="../#notes">Notes</a></nav>
+  <p class="eyebrow">Note</p>
+  <h1>Three SQL queries that explain a cycle count</h1>
+  <p class="dek">The browser version of <a href="../variance/">Variance</a> is JavaScript. The same analysis also runs as plain SQLite, so it can sit next to the warehouse data where it lives.</p>
+  <p class="meta">Ian Kachadorian · November 2026 · 4 min read</p>
+
+  <h2>One view to start from</h2>
+  <p>Every query reads from one view that adds the variance to each counted line. The count itself is a table with one row per location: SKU, system and counted quantity, unit cost, counter and dates.</p>
+  <pre class="sql"><code>-- One row per counted line with its variance in units and dollars.
+CREATE VIEW IF NOT EXISTS line_variance AS
+SELECT
+  rowid AS line_no,
+  location, sku, description, system_qty, counted_qty, unit_cost, counter,
+  counted_qty - system_qty                          AS var_units,
+  (counted_qty - system_qty) * unit_cost            AS var_dollars,
+  MAX(system_qty, 0) * unit_cost                    AS book_value
+FROM counts;</code></pre>
+  <p>On the sample count that is 164 lines, 28 of them with a variance. <code>MAX(system_qty, 0)</code> keeps a negative system quantity from adding negative book value.</p>
+
+  <h2>1. Which lines matter: a window function</h2>
+  <p>Most of the dollars sit in a few lines. A running total over the lines, largest first, shows how few.</p>
+  <pre class="sql"><code>-- Variance lines ranked by dollar impact, with the running share of gross variance.
+SELECT
+  location, sku, ROUND(var_dollars, 2) AS dollars,
+  ROUND(SUM(ABS(var_dollars)) OVER (ORDER BY ABS(var_dollars) DESC, line_no
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+        / SUM(ABS(var_dollars)) OVER (), 4)                       AS cumulative_share
+FROM line_variance
+WHERE var_units &lt;&gt; 0
+ORDER BY ABS(var_dollars) DESC, line_no;</code></pre>
+  <p><code>SUM(...) OVER (ORDER BY ...)</code> is a running total; <code>SUM(...) OVER ()</code> is the grand total on every row. Dividing one by the other gives the running share.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>#</th><th>Location</th><th>SKU</th><th class="r">Dollars</th><th class="r">Running share</th></tr></thead>
+    <tbody><tr><td>1</td><td>C-15-04</td><td>BAT-5100</td><td class="r">+$1,704.00</td><td class="r">14.74%</td></tr><tr><td>2</td><td>C-14-02</td><td>BAT-5100</td><td class="r">−$1,704.00</td><td class="r">29.48%</td></tr><tr><td>3</td><td>D-03-01</td><td>ALT-2400</td><td class="r">−$1,323.00</td><td class="r">40.92%</td></tr><tr><td>4</td><td>D-21-03</td><td>ALT-2400</td><td class="r">+$1,323.00</td><td class="r">52.36%</td></tr><tr><td>5</td><td>F-17-03</td><td>BRK-4410</td><td class="r">−$980.00</td><td class="r">60.84%</td></tr><tr><td>6</td><td>A-22-01</td><td>PMP-4100</td><td class="r">−$796.40</td><td class="r">67.72%</td></tr><tr><td>7</td><td>E-11-03</td><td>BRK-3301</td><td class="r">+$700.20</td><td class="r">73.78%</td></tr><tr><td>8</td><td>B-19-02</td><td>STR-2500</td><td class="r">−$656.00</td><td class="r">79.45%</td></tr><tr class="hit"><td>9</td><td>F-02-05</td><td>SEN-3200</td><td class="r">−$591.60</td><td class="r">84.57%</td></tr></tbody>
+  </table></div>
+  <p>The top two lines alone are 29.48% of gross variance. Line 9 takes the running share past 80%, so 9 of 28 lines are where the research time should go first.</p>
+
+  <h2>2. Stock in the wrong slot: a self-join</h2>
+  <p>A mislocation shows up as two lines for the same SKU: over in one slot, short by about the same amount in another. Joining the view to itself on SKU finds them.</p>
+  <pre class="sql"><code>-- Same SKU over in one location and short by about the same amount (within 15%) in another.
+SELECT
+  o.sku,
+  o.location   AS over_location,  o.var_units  AS over_units,
+  s.location   AS short_location, s.var_units  AS short_units,
+  ROUND(o.var_dollars, 2) AS dollars_moved
+FROM line_variance o
+JOIN line_variance s
+  ON  s.sku = o.sku
+  AND s.location &lt;&gt; o.location
+  AND o.var_units &gt;= 3
+  AND s.var_units &lt; 0
+  AND ABS(o.var_units + s.var_units) &lt;= 0.15 * MAX(o.var_units, -s.var_units)
+ORDER BY ABS(o.var_dollars) DESC;</code></pre>
+  <div class="scroll"><table>
+    <thead><tr><th>SKU</th><th>Over</th><th class="r">Units</th><th>Short</th><th class="r">Units</th><th class="r">Dollars</th></tr></thead>
+    <tbody><tr><td>BAT-5100</td><td>C-15-04</td><td class="r">+12</td><td>C-14-02</td><td class="r">−12</td><td class="r">$1,704.00</td></tr><tr><td>ALT-2400</td><td>D-21-03</td><td class="r">+7</td><td>D-03-01</td><td class="r">−7</td><td class="r">$1,323.00</td></tr><tr><td>BLT-8120</td><td>E-09-02</td><td class="r">+3</td><td>A-16-01</td><td class="r">−3</td><td class="r">$82.80</td></tr></tbody>
+  </table></div>
+  <p>The battery and alternator pairs were planted in the synthetic sample. The serpentine belt was not: it came from the sample's random noise, and it is exactly what a real pair looks like. Whether a 3-unit pair is worth a transfer is a judgment call. The query surfaces it; a person decides.</p>
+
+  <h2>3. What keeps coming back: a join across two counts</h2>
+  <p>A variance that shows up once might be a counting slip. One that shows up again, in the same direction, points to a process problem. Load an earlier count of the same locations as a second table and join on SKU and location.</p>
+  <pre class="sql"><code>-- Needs a second table, prior_counts, with the same columns: an earlier count of the same locations.
+-- Lines that were off last time and are off again, largest combined dollars first.
+SELECT
+  c.location, c.sku, c.description,
+  p.counted_qty - p.system_qty                                        AS prev_units,
+  c.var_units                                                         AS units,
+  ROUND((p.counted_qty - p.system_qty) * p.unit_cost, 2)              AS prev_dollars,
+  ROUND(c.var_dollars, 2)                                             AS dollars,
+  CASE WHEN (p.counted_qty &gt; p.system_qty) = (c.var_units &gt; 0)
+       THEN &#x27;same direction&#x27; ELSE &#x27;flipped&#x27; END                       AS direction
+FROM line_variance c
+JOIN prior_counts p ON p.sku = c.sku AND p.location = c.location
+WHERE c.var_units &lt;&gt; 0 AND p.counted_qty &lt;&gt; p.system_qty
+ORDER BY ABS((p.counted_qty - p.system_qty) * p.unit_cost) + ABS(c.var_dollars) DESC, c.location;</code></pre>
+  <div class="scroll"><table>
+    <thead><tr><th>Location</th><th>Item</th><th class="r">Last</th><th class="r">Now</th><th>Direction</th></tr></thead>
+    <tbody><tr><td>C-14-02</td><td>Battery, group 24F</td><td class="r">−8</td><td class="r">−12</td><td>same direction</td></tr><tr><td>C-15-04</td><td>Battery, group 24F</td><td class="r">+8</td><td class="r">+12</td><td>same direction</td></tr><tr><td>A-22-01</td><td>Water pump</td><td class="r">−4</td><td class="r">−11</td><td>same direction</td></tr><tr><td>E-12-01</td><td>Headlight bulb 9005</td><td class="r">−10</td><td class="r">−12</td><td>same direction</td></tr><tr><td>E-12-02</td><td>Headlight bulb 9006</td><td class="r">+10</td><td class="r">+12</td><td>same direction</td></tr><tr><td>E-01-04</td><td>Brake rotor, vented</td><td class="r">−1</td><td class="r">−2</td><td>same direction</td></tr><tr><td>F-20-01</td><td>Cabin air filter</td><td class="r">−3</td><td class="r">−3</td><td>same direction</td></tr><tr><td>B-11-03</td><td>Headlight bulb 9006</td><td class="r">−1</td><td class="r">+2</td><td>flipped</td></tr><tr><td>A-05-05</td><td>Hose clamp, 5/8 in</td><td class="r">−1</td><td class="r">−1</td><td>same direction</td></tr></tbody>
+  </table></div>
+  <p>9 lines are off in both counts, and 8 of them in the same direction. The battery pair grew from 8 units each way to 12, so whatever sent stock to the wrong slot is still happening. The water pump slot went from short 4 to short 11.</p>
+
+  <div class="callout"><p><b>Same answers everywhere.</b> Automated tests check these queries against the pandas version of Variance, and the pandas version against the browser tool, on every change.</p></div>
+
+  <p class="end">All the data here is Variance's synthetic sample. The queries are in <a href="https://github.com/dualityframework-ux/duality-framework/blob/main/variance/python/queries.sql">queries.sql</a>, and <code>run_sql.py</code> loads a CSV and runs them. Or try the browser version in <a href="../variance/">Variance</a>.</p>
+</main>
+</body>
+</html>
