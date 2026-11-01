@@ -54,3 +54,22 @@
 
 Flagged for a variance rate well above the team's: C-07
 
+## Compared with the previous count
+
+- Gross accuracy: 96.82% → 94.32% (-2.50 pts)
+- Net accuracy: 99.28% → 99.01% (-0.26 pts)
+- Gross variance: $6,362.80 → $11,562.25
+- 9 lines are off again ($4,681.75 this count), 19 are new, 17 from last time now count clean
+
+| Location | SKU | Last count | This count | Cause now |
+| --- | --- | ---: | ---: | --- |
+| C-14-02 | BAT-5100 | -8 | -12 | Mislocated stock |
+| C-15-04 | BAT-5100 | +8 | +12 | Mislocated stock |
+| A-22-01 | PMP-4100 | -4 | -11 | Empty location |
+| E-12-01 | LMP-9005 | -10 | -12 | Look-alike swap |
+| E-12-02 | LMP-9006 | +10 | +12 | Look-alike swap |
+| E-01-04 | BRK-4410 | -1 | -2 | Counter accuracy |
+| F-20-01 | FLT-2210 | -3 | -3 | Counter accuracy |
+| B-11-03 | LMP-9006 | -1 | +2 | Counter accuracy |
+| A-05-05 | CLP-5005 | -1 | -1 | Counter accuracy |
+

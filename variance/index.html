@@ -102,6 +102,8 @@ tr.hot td{background:var(--bad-soft)}
 .evb.ok,b.ok{color:var(--good)}.evb.ok{border:1px solid var(--good)}
 .evb.maybe,b.maybe{color:var(--warn)}.evb.maybe{border:1px solid var(--warn)}
 .hist{align-items:center}
+.h3{font-size:.95rem;margin:16px 0 6px}
+.tiles.cmp{grid-template-columns:repeat(3,minmax(0,1fr));margin:12px 0}
 .settings{border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
 .settings summary{cursor:pointer;font-weight:600;font-size:.9rem}
 .settings[open]{display:flex;flex-direction:column;gap:10px}
@@ -121,7 +123,7 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
 }
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:8px 14px;border-radius:8px;font-size:.85rem;z-index:5}
 @media (max-width:900px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
-@media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.cause{grid-template-columns:1fr auto}.cause .track{grid-column:1/-1;grid-row:2}.oim{grid-template-columns:1fr}.oim dt{padding-top:6px}}
+@media (max-width:520px){.tiles.cmp{grid-template-columns:1fr}.cmpt .desc{display:none}.cmpt td,.cmpt th{padding-left:4px;padding-right:4px}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.cause{grid-template-columns:1fr auto}.cause .track{grid-column:1/-1;grid-row:2}.oim{grid-template-columns:1fr}.oim dt{padding-top:6px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -149,6 +151,9 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
     <div class="bar hist"><span class="note"><b>Transaction history</b> (optional): moves, receipts and picks, to confirm each cause.</span>
       <label class="btn ghost tiny" for="txFile">Upload history CSV</label><input id="txFile" type="file" accept=".csv,text/csv">
       <button class="ghost tiny" id="txSample">Load sample history</button><span id="txMsg" class="note" role="status"></span></div>
+    <div class="bar hist"><span class="note"><b>Previous count</b> (optional): an earlier count of the same locations, to see what keeps coming back.</span>
+      <label class="btn ghost tiny" for="prFile">Upload previous count</label><input id="prFile" type="file" accept=".csv,text/csv">
+      <button class="ghost tiny" id="prSample">Load sample previous count</button><span id="prMsg" class="note" role="status"></span></div>
     <details id="settings" class="settings">
       <summary>Detection settings</summary>
       <p class="note">Tune the checks to your building. Changes re-run the analysis right away and reset when you leave the page.</p>
@@ -191,6 +196,7 @@ const qtyS = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleStrin
 let raw = null, map = null, result = null, filter = null, source = "", recountMin = 25, blind = true;
 let settings = { ...E.DEFAULTS };
 let txns = null, txLabel = "";
+let prior = null, priorLabel = "", cmp = null;
 function fillSettings(){ document.querySelectorAll("[data-s]").forEach(el => { const v = settings[el.dataset.s]; el.value = el.dataset.s === "packs" ? v.join(", ") : el.dataset.pct ? Math.round(v*100) : v; }); }
 
 function toast(m){ const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),1800); }
@@ -200,6 +206,7 @@ function load(text, label){
   if (rows.length < 2){ $("#msg").innerHTML = '<span class="err">That file has no data rows. Check that it is a CSV with a header row.</span>'; return; }
   raw = { headers: rows[0], rows: rows.slice(1) }; source = label;
   txns = null; txLabel = ""; $("#txMsg").textContent = "";
+  prior = null; priorLabel = ""; cmp = null; $("#prMsg").textContent = "";
   map = E.guessMapping(raw.headers);
   const missing = Object.entries(E.FIELDS).filter(([k,f]) => f.required && map[k] == null);
   if (missing.length) { showMapping(missing.map(([,f]) => f.label)); $("#out").innerHTML = ""; return; }
@@ -220,6 +227,7 @@ function run(){
   if (!records.length){ $("#msg").innerHTML = '<span class="err">No rows had a SKU, location, both quantities and a unit cost. Check the column matching.</span>'; showMapping(); return; }
   result = E.analyze(records, { threshold: +$("#thr").value || 0, recentDays: +$("#days").value || 0, ...settings });
   if (txns) E.attachEvidence(result, txns, { recentDays: +$("#days").value || 0 });
+  cmp = prior ? E.compareCounts(E.analyze(prior, { threshold: +$("#thr").value || 0, recentDays: +$("#days").value || 0, ...settings }), result) : null;
   filter = null;
   $("#msg").innerHTML = `Analyzed <b>${records.length.toLocaleString()}</b> lines from ${esc(source)}.` + (skipped.length ? ` Skipped ${skipped.length} incomplete row${skipped.length>1?"s":""} (line ${skipped.slice(0,5).join(", ")}${skipped.length>5?"…":""}).` : "") + ` <button class="tiny ghost" id="remap">Check column matching</button>`;
   render();
@@ -241,6 +249,30 @@ function paretoChart(p, for80){
     ${bars}<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>
     ${top.map((v,i)=>`<circle cx="${L+i*bw+bw/2}" cy="${yc(v.cumShare)}" r="${i===k?4.5:2.5}" fill="var(--accent)"/>`).join("")}
   </svg>`;
+}
+function delta(d, kind){
+  if (d == null) return "";
+  if (kind === "pts") { const t = (d*100).toFixed(2); return `<span class="${d>0?"pos":d<0?"neg":""}">${d>0?"+":d<0?"−":""}${Math.abs(t).toFixed(2)} pts</span>`; }
+  return `<span class="${d<0?"pos":d>0?"neg":""}">${d>0?"+":d<0?"−":""}${money(Math.abs(d))}</span>`;
+}
+function compareSection(c){
+  const p = c.prev, s = c.curr, share = s.gross ? c.repeatGross / s.gross : 0;
+  return `<section class="sheet" aria-labelledby="cmp-h">
+    <h2 id="cmp-h">Since the last count</h2>
+    <p class="sub">Compared with ${esc(priorLabel)}. <b>${c.repeats.length} line${c.repeats.length===1?"":"s"} ${c.repeats.length===1?"is":"are"} off again</b>, worth ${money(c.repeatGross)} this count (${(share*100).toFixed(0)}% of gross). ${c.fresh} ${c.fresh===1?"is":"are"} new, and ${c.resolved} from last time now count clean.${c.notRecounted?` ${c.notRecounted} weren't in this count.`:""} A line that keeps coming back points to a process problem, not a counting one.</p>
+    <div class="tiles cmp">
+      <div class="tile"><div class="k">Gross accuracy</div><div class="v">${pct(s.grossAccuracy)}</div><div class="d">was ${pct(p.grossAccuracy)} · ${delta(c.delta.grossAccuracy,"pts")}</div></div>
+      <div class="tile"><div class="k">Net accuracy</div><div class="v">${pct(s.netAccuracy)}</div><div class="d">was ${pct(p.netAccuracy)} · ${delta(c.delta.netAccuracy,"pts")}</div></div>
+      <div class="tile"><div class="k">Gross variance</div><div class="v">${money(s.gross)}</div><div class="d">was ${money(p.gross)} · ${delta(c.delta.gross)}</div></div>
+    </div>
+    ${c.repeats.length ? `<h3 class="h3">Off again</h3><div class="scroll"><table class="cmpt"><thead><tr><th>Location</th><th>SKU</th><th class="r">Last count</th><th class="r">This count</th><th>Cause now</th></tr></thead><tbody>
+    ${c.repeats.map(v=>`<tr><td><span class="loc">${esc(v.location)}</span></td><td>${esc(v.sku)}${v.description?`<br><span class="note desc">${esc(v.description)}</span>`:""}</td><td class="r ${v.prevQty<0?"neg":"pos"}">${qtyS(v.prevQty)}<br><span class="note">${money(v.prevDollars)}</span></td><td class="r ${v.qty<0?"neg":"pos"}">${qtyS(v.qty)}<br><span class="note">${money(v.dollars)}</span></td><td><span class="pill p-${v.pattern}">${esc(E.PATTERNS[v.pattern].short)}</span>${v.sameDirection?"":'<br><span class="note">flipped direction</span>'}</td></tr>`).join("")}
+    </tbody></table></div>` : `<div class="empty">No line is off in both counts.</div>`}
+    <h3 class="h3">Causes, then and now</h3>
+    <div class="scroll"><table><thead><tr><th>Cause</th><th class="r">Last count</th><th class="r">This count</th><th class="r">Change</th></tr></thead><tbody>
+    ${c.causes.map(k=>`<tr><td>${esc(k.name)}</td><td class="r">${money(k.prevGross)}<br><span class="note">${k.prevCount} line${k.prevCount===1?"":"s"}</span></td><td class="r">${money(k.gross)}<br><span class="note">${k.count} line${k.count===1?"":"s"}</span></td><td class="r">${delta(k.gross-k.prevGross)}</td></tr>`).join("")}
+    </tbody></table></div>
+  </section>`;
 }
 function evBadge(v){ const st = v.evidence && v.evidence.status; return st === "confirmed" ? ' <span class="evb ok" title="Confirmed by transaction history">✓ confirmed</span>' : st === "supported" ? ' <span class="evb maybe" title="Supported by transaction history">supported</span>' : ""; }
 function niceStep(max){ const raw = max/4, p = Math.pow(10, Math.floor(Math.log10(raw||1))); return [1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw) || raw; }
@@ -278,6 +310,8 @@ function render(){
         <span class="camt">${money(p.gross)}<small>${(p.gross/s.gross*100).toFixed(0)}% of gross</small></span></button>`).join("")}</div>
     </section>
   </div>
+
+  ${cmp ? compareSection(cmp) : ""}
 
   <section class="sheet" aria-labelledby="f-h">
     <div class="bar" style="justify-content:space-between"><h2 id="f-h">Needs a written root cause</h2>${flagged.length?`<button class="tiny ghost" id="copyAll">Copy all ${flagged.length}</button>`:""}</div>
@@ -347,6 +381,7 @@ document.addEventListener("click", e => {
   else if (t.dataset.copy !== undefined) { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(E.explain(f[+t.dataset.copy]).text); }
   else if (t.id === "copyAll") { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(f.map(v => E.explain(v).text).join("\n\n")); }
   else if (t.id === "txSample") { loadHistory(E.sampleTransactionsCSV(), "the sample history"); }
+  else if (t.id === "prSample") { loadPrior(E.samplePriorCSV(), "the sample count from a month earlier"); }
   else if (t.id === "resetSettings") { settings = { ...E.DEFAULTS }; fillSettings(); if (raw && map) run(); toast("Settings reset"); }
   else if (t.id === "export") exportCSV();
   else if (t.id === "sampleDl") download(E.sampleCSV(), "variance-sample-count.csv");
@@ -362,6 +397,19 @@ function loadHistory(text, label){
   if (r.error){ $("#txMsg").innerHTML = '<span class="err">' + esc(r.error) + '</span>'; return; }
   txns = r.txns; txLabel = label; $("#txMsg").textContent = `${txns.length} transactions loaded.`; run();
 }
+function loadPrior(text, label){
+  if (!raw){ toast("Load a count first"); return; }
+  const rows = E.parseCSV(text);
+  if (rows.length < 2){ $("#prMsg").innerHTML = '<span class="err">That file has no data rows.</span>'; return; }
+  const m = E.guessMapping(rows[0]);
+  const missing = Object.entries(E.FIELDS).filter(([k,f]) => f.required && m[k] == null).map(([,f]) => f.label);
+  if (missing.length){ $("#prMsg").innerHTML = '<span class="err">Couldn\'t find ' + esc(missing.join(", ")) + ' in the previous count.</span>'; return; }
+  const { records } = E.buildRecords(rows.slice(1), m);
+  if (!records.length){ $("#prMsg").innerHTML = '<span class="err">No complete rows in the previous count.</span>'; return; }
+  prior = records; priorLabel = label; $("#prMsg").textContent = `${records.length.toLocaleString()} lines loaded.`; run();
+  const sec = document.getElementById("cmp-h"); if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+$("#prFile").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => loadPrior(rd.result, f.name); rd.readAsText(f); e.target.value = ""; });
 $("#txFile").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => loadHistory(rd.result, f.name); rd.readAsText(f); e.target.value = ""; });
 $("#file").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => load(rd.result, f.name); rd.readAsText(f); e.target.value = ""; });
 ["#thr","#days"].forEach(id => $(id).addEventListener("change", () => { if (raw && map) run(); }));

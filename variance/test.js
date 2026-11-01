@@ -80,6 +80,26 @@ assert.ok(E.explain(ev.variances.find(v => v.sku === "BAT-5100" && v.location ==
 assert.ok(!E.explain(r.variances[0]).text.includes("Evidence:"), "no evidence line without history");
 assert.ok(E.parseTransactions("a,b\n1,2\n").error, "bad transaction file is rejected");
 
+// ---------- count over count ----------
+const priorRows = E.parseCSV(E.samplePriorCSV("2026-10-31"));
+const prior = E.analyze(E.buildRecords(priorRows.slice(1), E.guessMapping(priorRows[0])).records, { threshold: 1000, recentDays: 3 });
+assert.strictEqual(prior.summary.lines, r.summary.lines, "prior sample covers the same locations");
+const cmp = E.compareCounts(prior, r);
+const rep = (sku, loc) => cmp.repeats.find(x => x.sku === sku && x.location === loc);
+for (const [sku, loc] of [["BAT-5100", "C-14-02"], ["BAT-5100", "C-15-04"], ["LMP-9005", "E-12-01"], ["LMP-9006", "E-12-02"], ["PMP-4100", "A-22-01"]])
+  assert.ok(rep(sku, loc), `${sku} at ${loc} repeats`);
+assert.strictEqual(rep("BAT-5100", "C-14-02").prevPattern, "mislocated", "battery was mislocated last month too");
+assert.ok(rep("BAT-5100", "C-14-02").sameDirection, "same direction both months");
+assert.ok(!rep("ALT-2400", "D-03-01"), "new problems are not repeats");
+assert.strictEqual(cmp.repeats.length + cmp.fresh, r.variances.length, "every current variance is a repeat or new");
+assert.strictEqual(cmp.resolved + cmp.notRecounted + cmp.repeats.length, prior.variances.length, "every prior variance is resolved, repeated or not recounted");
+assert.ok(Math.abs(cmp.delta.grossAccuracy - (r.summary.grossAccuracy - prior.summary.grossAccuracy)) < 1e-12, "accuracy delta");
+assert.ok(Math.abs(cmp.repeatGross + cmp.freshGross - r.summary.gross) < 1e-6, "repeat + new dollars = gross");
+const self = E.compareCounts(r, r);
+assert.strictEqual(self.repeats.length, r.variances.length, "a count compared to itself: everything repeats");
+assert.strictEqual(self.fresh, 0); assert.strictEqual(self.resolved, 0);
+assert.strictEqual(E.samplePriorCSV("2026-10-31"), E.samplePriorCSV("2026-10-31"), "prior sample is deterministic");
+
 console.log("all checks passed");
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),

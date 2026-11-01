@@ -108,3 +108,19 @@ JOIN transactions t
   AND julianday(c.count_date) - julianday(t.date) BETWEEN 0 AND 3
 WHERE v.var_units <> 0
 ORDER BY v.location;
+
+-- name: repeat_variances
+-- Needs a second table, prior_counts, with the same columns: an earlier count of the same locations.
+-- Lines that were off last time and are off again, largest combined dollars first.
+SELECT
+  c.location, c.sku, c.description,
+  p.counted_qty - p.system_qty                                        AS prev_units,
+  c.var_units                                                         AS units,
+  ROUND((p.counted_qty - p.system_qty) * p.unit_cost, 2)              AS prev_dollars,
+  ROUND(c.var_dollars, 2)                                             AS dollars,
+  CASE WHEN (p.counted_qty > p.system_qty) = (c.var_units > 0)
+       THEN 'same direction' ELSE 'flipped' END                       AS direction
+FROM line_variance c
+JOIN prior_counts p ON p.sku = c.sku AND p.location = c.location
+WHERE c.var_units <> 0 AND p.counted_qty <> p.system_qty
+ORDER BY ABS((p.counted_qty - p.system_qty) * p.unit_cost) + ABS(c.var_dollars) DESC, c.location;

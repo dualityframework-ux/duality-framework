@@ -1,0 +1,253 @@
+{
+ "delta": {
+  "grossAccuracy": -0.02498449474380393,
+  "netAccuracy": -0.00263877802458512,
+  "locationAccuracy": -0.012195121951219523,
+  "gross": 5199.449999999999,
+  "net": -562.6500000000003,
+  "varianceLines": 2
+ },
+ "causes": [
+  {
+   "key": "mislocated",
+   "name": "Mislocated stock",
+   "prevCount": 2,
+   "count": 6,
+   "prevGross": 2272,
+   "gross": 6219.6
+  },
+  {
+   "key": "uom",
+   "name": "Unit of measure",
+   "prevCount": 0,
+   "count": 2,
+   "prevGross": 0,
+   "gross": 505.15000000000003
+  },
+  {
+   "key": "transposed",
+   "name": "Transposed digits",
+   "prevCount": 0,
+   "count": 1,
+   "prevGross": 0,
+   "gross": 700.1999999999999
+  },
+  {
+   "key": "swap",
+   "name": "Look-alike swap",
+   "prevCount": 2,
+   "count": 2,
+   "prevGross": 246,
+   "gross": 295.20000000000005
+  },
+  {
+   "key": "timing",
+   "name": "Timing / unposted transaction",
+   "prevCount": 0,
+   "count": 2,
+   "prevGross": 0,
+   "gross": 1247.6
+  },
+  {
+   "key": "empty",
+   "name": "Empty location",
+   "prevCount": 0,
+   "count": 2,
+   "prevGross": 0,
+   "gross": 1776.4
+  },
+  {
+   "key": "found",
+   "name": "Found stock",
+   "prevCount": 0,
+   "count": 1,
+   "prevGross": 0,
+   "gross": 487.8
+  },
+  {
+   "key": "counter",
+   "name": "Counter accuracy",
+   "prevCount": 14,
+   "count": 10,
+   "prevGross": 580.1500000000001,
+   "gross": 306.4
+  },
+  {
+   "key": "unexplained",
+   "name": "Unexplained",
+   "prevCount": 8,
+   "count": 2,
+   "prevGross": 3264.65,
+   "gross": 23.9
+  }
+ ],
+ "repeats": [
+  {
+   "sku": "BAT-5100",
+   "location": "C-14-02",
+   "prevQty": -8,
+   "prevDollars": -1136,
+   "prevPattern": "mislocated",
+   "qty": -12,
+   "dollars": -1704,
+   "pattern": "mislocated",
+   "sameDirection": true
+  },
+  {
+   "sku": "BAT-5100",
+   "location": "C-15-04",
+   "prevQty": 8,
+   "prevDollars": 1136,
+   "prevPattern": "mislocated",
+   "qty": 12,
+   "dollars": 1704,
+   "pattern": "mislocated",
+   "sameDirection": true
+  },
+  {
+   "sku": "PMP-4100",
+   "location": "A-22-01",
+   "prevQty": -4,
+   "prevDollars": -289.6,
+   "prevPattern": "unexplained",
+   "qty": -11,
+   "dollars": -796.4000000000001,
+   "pattern": "empty",
+   "sameDirection": true
+  },
+  {
+   "sku": "LMP-9005",
+   "location": "E-12-01",
+   "prevQty": -10,
+   "prevDollars": -123,
+   "prevPattern": "swap",
+   "qty": -12,
+   "dollars": -147.60000000000002,
+   "pattern": "swap",
+   "sameDirection": true
+  },
+  {
+   "sku": "LMP-9006",
+   "location": "E-12-02",
+   "prevQty": 10,
+   "prevDollars": 123,
+   "prevPattern": "swap",
+   "qty": 12,
+   "dollars": 147.60000000000002,
+   "pattern": "swap",
+   "sameDirection": true
+  },
+  {
+   "sku": "BRK-4410",
+   "location": "E-01-04",
+   "prevQty": -1,
+   "prevDollars": -61.25,
+   "prevPattern": "counter",
+   "qty": -2,
+   "dollars": -122.5,
+   "pattern": "counter",
+   "sameDirection": true
+  },
+  {
+   "sku": "FLT-2210",
+   "location": "F-20-01",
+   "prevQty": -3,
+   "prevDollars": -34.2,
+   "prevPattern": "counter",
+   "qty": -3,
+   "dollars": -34.2,
+   "pattern": "counter",
+   "sameDirection": true
+  },
+  {
+   "sku": "LMP-9006",
+   "location": "B-11-03",
+   "prevQty": -1,
+   "prevDollars": -12.3,
+   "prevPattern": "counter",
+   "qty": 2,
+   "dollars": 24.6,
+   "pattern": "counter",
+   "sameDirection": false
+  },
+  {
+   "sku": "CLP-5005",
+   "location": "A-05-05",
+   "prevQty": -1,
+   "prevDollars": -0.85,
+   "prevPattern": "counter",
+   "qty": -1,
+   "dollars": -0.85,
+   "pattern": "counter",
+   "sameDirection": true
+  }
+ ],
+ "repeatGross": 4681.750000000001,
+ "fresh": 19,
+ "freshGross": 6880.500000000001,
+ "resolved": 17,
+ "resolvedGross": 3446.6000000000004,
+ "notRecounted": 0,
+ "repeatSkus": [
+  {
+   "sku": "BAT-5100",
+   "prevGross": 2272,
+   "gross": 3408
+  },
+  {
+   "sku": "ALT-2400",
+   "prevGross": 2835,
+   "gross": 2646
+  },
+  {
+   "sku": "BRK-4410",
+   "prevGross": 122.5,
+   "gross": 1102.5
+  },
+  {
+   "sku": "PMP-4100",
+   "prevGross": 289.6,
+   "gross": 796.4000000000001
+  },
+  {
+   "sku": "BRK-3301",
+   "prevGross": 38.9,
+   "gross": 739.0999999999999
+  },
+  {
+   "sku": "SEN-3100",
+   "prevGross": 162.60000000000002,
+   "gross": 487.8
+  },
+  {
+   "sku": "LMP-9005",
+   "prevGross": 135.3,
+   "gross": 172.20000000000002
+  },
+  {
+   "sku": "LMP-9006",
+   "prevGross": 135.3,
+   "gross": 172.20000000000002
+  },
+  {
+   "sku": "CLP-5005",
+   "prevGross": 0.85,
+   "gross": 234.6
+  },
+  {
+   "sku": "BLT-8120",
+   "prevGross": 27.6,
+   "gross": 165.60000000000002
+  },
+  {
+   "sku": "FLT-2210",
+   "prevGross": 34.2,
+   "gross": 34.2
+  },
+  {
+   "sku": "FUS-6010",
+   "prevGross": 24.8,
+   "gross": 18.6
+  }
+ ]
+}

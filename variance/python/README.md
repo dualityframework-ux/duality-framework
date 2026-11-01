@@ -5,7 +5,7 @@ The same cycle count analysis as the [live Variance tool](https://dualityframewo
 - **`variance_analyzer.py`**: a pandas port of the full engine, with a command-line report.
 - **`queries.sql`**: the core analyses as plain SQLite queries.
 
-Parity tests check that the pandas version gives **the same likely cause for every variance line, the same paired slots, the same metrics and the same transaction-history evidence, word for word,** as the JavaScript engine behind the website, using its exported output as fixtures.
+Parity tests check that the pandas version gives **the same likely cause for every variance line, the same paired slots, the same metrics, the same transaction-history evidence word for word, and the same count-over-count comparison,** as the JavaScript engine behind the website, using its exported output as fixtures.
 
 ## Run it
 
@@ -26,11 +26,15 @@ python run_sql.py sample_count.csv
 python run_sql.py sample_count.csv mislocated_pairs
 python run_sql.py sample_count.csv --tx sample_transactions.csv confirmed_mislocations
 
-# Tests (46), including parity with the JavaScript engine: causes, metrics, tuned settings and evidence
+# Compare with an earlier count of the same locations: what got better, what keeps coming back
+python variance_analyzer.py sample_count.csv --prior sample_prior_count.csv
+python run_sql.py sample_count.csv --prior sample_prior_count.csv repeat_variances
+
+# Tests (56), including parity with the JavaScript engine: causes, metrics, tuned settings, evidence and count-over-count comparison
 pytest -q
 ```
 
-See [`example_report.md`](example_report.md) for the output on the sample count and sample history.
+See [`example_report.md`](example_report.md) for the output on the sample count, sample history and sample previous count.
 
 ## What's in the SQL
 
@@ -44,6 +48,7 @@ See [`example_report.md`](example_report.md) for the output on the sample count 
 | `counter_rates` | Each counter's variance rate against the team rate, from a CTE |
 | `confirmed_mislocations` | Three-way join: the over/short pair matched to a transfer between exactly those slots |
 | `activity_before_count` | Date arithmetic (`julianday`) to find moves in the 3 days before the count |
+| `repeat_variances` | Join against the previous count to find lines off in both, and whether they flipped direction |
 
 ## How the pandas version is organized
 

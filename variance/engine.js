@@ -421,6 +421,80 @@
     return toCSV(rows);
   }
 
-  const api = { DEFAULTS, parseTransactions, attachEvidence, sampleTransactionsCSV, parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
+  // ---------- count over count ----------
+  // Compare two analyzed counts of the same area: what improved, what keeps coming back.
+  function compareCounts(prev, curr) {
+    const key = v => v.sku + "\u0000" + v.location;
+    const prevLines = new Map(prev.lines.map(l => [key(l), l]));
+    const currLines = new Map(curr.lines.map(l => [key(l), l]));
+    const repeats = [], fresh = [], resolved = [], notRecounted = [];
+    for (const v of curr.variances) {
+      const p = prevLines.get(key(v));
+      if (p && p.qty !== 0) repeats.push({ sku: v.sku, location: v.location, description: v.description || "",
+        prevQty: p.qty, prevDollars: p.dollars, prevPattern: p.pattern, qty: v.qty, dollars: v.dollars, pattern: v.pattern,
+        sameDirection: Math.sign(p.qty) === Math.sign(v.qty) });
+      else fresh.push(v);
+    }
+    for (const p of prev.variances) {
+      const c = currLines.get(key(p));
+      if (!c) notRecounted.push(p); else if (c.qty === 0) resolved.push(p);
+    }
+    repeats.sort((a, b) => (Math.abs(b.prevDollars) + Math.abs(b.dollars)) - (Math.abs(a.prevDollars) + Math.abs(a.dollars)) || (a.location < b.location ? -1 : 1));
+    const gross = list => list.reduce((t, v) => t + Math.abs(v.dollars), 0);
+    const skuGross = list => list.reduce((m, v) => (m[v.sku] = (m[v.sku] || 0) + Math.abs(v.dollars), m), {});
+    const ps = skuGross(prev.variances), cs = skuGross(curr.variances);
+    const repeatSkus = Object.keys(cs).filter(k => k in ps).map(sku => ({ sku, prevGross: ps[sku], gross: cs[sku] }))
+      .sort((a, b) => (b.prevGross + b.gross) - (a.prevGross + a.gross) || (a.sku < b.sku ? -1 : 1));
+    const pb = Object.fromEntries(prev.byPattern.map(p => [p.key, p])), cb = Object.fromEntries(curr.byPattern.map(p => [p.key, p]));
+    const causes = ORDER.filter(k => pb[k] || cb[k]).map(k => ({ key: k, name: PATTERNS[k].name, short: PATTERNS[k].short,
+      prevCount: pb[k] ? pb[k].count : 0, count: cb[k] ? cb[k].count : 0, prevGross: pb[k] ? pb[k].gross : 0, gross: cb[k] ? cb[k].gross : 0 }));
+    const delta = {};
+    ["grossAccuracy", "netAccuracy", "locationAccuracy", "gross", "net", "varianceLines"].forEach(k => {
+      delta[k] = prev.summary[k] == null || curr.summary[k] == null ? null : curr.summary[k] - prev.summary[k]; });
+    return { prev: prev.summary, curr: curr.summary, delta, causes, repeats, repeatGross: gross(repeats),
+      fresh: fresh.length, freshGross: gross(fresh), resolved: resolved.length, resolvedGross: gross(resolved),
+      notRecounted: notRecounted.length, repeatSkus };
+  }
+
+  // Synthetic prior count of the same locations a month earlier. Some problems were fixed since,
+  // some are new, and three keep coming back (the battery pair, the look-alike bulbs, the water pump slot).
+  function samplePriorCSV(seedDate) {
+    const rows = parseCSV(sampleCSV(seedDate));
+    let s = 20260930; const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296;
+    const shift = (d, n) => { const t = new Date(d + "T12:00:00"); t.setDate(t.getDate() - n); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); };
+    const H = rows[0], I = Object.fromEntries(H.map((h, i) => [h, i]));
+    const body = rows.slice(1).filter(r => r.length === H.length);
+    for (const r of body) {
+      const sys = +r[I.system_qty], ctr = r[I.counter];
+      const was = sys === 0 ? 0 : Math.max(1, sys + Math.round(rnd() * 12 - 6));
+      let cnt = was;
+      if (was > 0 && (ctr === "C-07" ? rnd() < 0.3 : rnd() < 0.04)) cnt = Math.max(0, was + (rnd() < 0.5 ? -1 : 1) * (1 + Math.floor(rnd() * 3)));
+      r[I.system_qty] = was; r[I.counted_qty] = cnt;
+      r[I.count_date] = shift(r[I.count_date], 30); r[I.last_movement] = shift(r[I.count_date], 8 + Math.floor(rnd() * 40));
+    }
+    const at = (loc, sku) => body.find(r => r[I.location] === loc && r[I.sku] === sku);
+    const set = (loc, sku, sys, cnt) => { const r = at(loc, sku); if (r) { r[I.system_qty] = sys; r[I.counted_qty] = cnt; } };
+    // lines that are problems this month were clean last month
+    [["D-03-01", "ALT-2400"], ["D-21-03", "ALT-2400"], ["B-06-02", "CLP-5005"], ["A-09-04", "SPK-7002"], ["E-11-03", "BRK-3301"],
+     ["F-02-05", "SEN-3200"], ["B-19-02", "STR-2500"], ["F-17-03", "BRK-4410"], ["D-08-04", "SEN-3100"]].forEach(([l, k]) => { const r = at(l, k); if (r) r[I.counted_qty] = r[I.system_qty]; });
+    // repeat offenders
+    set("C-14-02", "BAT-5100", 18, 10); set("C-15-04", "BAT-5100", 0, 8);   // the same battery mislocation, 8 units
+    set("E-12-01", "LMP-9005", 26, 16); set("E-12-02", "LMP-9006", 20, 30); // the same look-alike bulbs, 10 units
+    set("A-22-01", "PMP-4100", 11, 7);                                      // the water pump slot was short then too
+    // problems last month that this month's count shows fixed: the three largest clean lines by book value
+    const current = new Map(parseCSV(sampleCSV(seedDate)).slice(1).map(x => [x[I.location] + "|" + x[I.sku], x]));
+    const clean = body.filter(r => { const c = current.get(r[I.location] + "|" + r[I.sku]); return r[I.counter] !== "C-07" && +r[I.system_qty] > 0 && c && +c[I.counted_qty] === +c[I.system_qty]; })
+      .sort((a, b) => b[I.system_qty] * b[I.unit_cost] - a[I.system_qty] * a[I.unit_cost]);
+    const fixes = [sys => Math.max(0, sys - 6), sys => Math.max(0, sys - 4), sys => sys + 5];
+    let k = 0;
+    for (const r of clean) {
+      if (k >= fixes.length) break;
+      if (["C-14-02", "C-15-04", "E-12-01", "E-12-02", "A-22-01"].includes(r[I.location]) || +r[I.counted_qty] !== +r[I.system_qty]) continue;
+      r[I.counted_qty] = fixes[k++](+r[I.system_qty]);
+    }
+    return toCSV([H, ...body]);
+  }
+
+  const api = { DEFAULTS, parseTransactions, attachEvidence, sampleTransactionsCSV, compareCounts, samplePriorCSV, parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.VarianceEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -379,6 +379,61 @@ def explain(v: pd.Series) -> dict:
     return {"observation": observation, "mechanism": mech + ".", "implication": action, "evidence": ev or ""}
 
 
+# ---------------------------------------------------------------- count over count
+
+def compare_counts(prev: Result, curr: Result) -> dict:
+    """Compare two analyzed counts of the same area: accuracy change, causes, and lines that keep coming back."""
+    key = ["sku", "location"]
+    pv, cv = prev.variances, curr.variances
+    prev_lines = prev.lines[key + ["qty"]].rename(columns={"qty": "prev_line_qty"})
+    curr_lines = curr.lines[key + ["qty"]].rename(columns={"qty": "curr_line_qty"})
+    m = cv.merge(prev_lines, on=key, how="left")
+    is_repeat = m["prev_line_qty"].fillna(0) != 0
+    rep = m[is_repeat].merge(pv[key + ["dollars", "pattern"]].rename(columns={"dollars": "prev_dollars", "pattern": "prev_pattern"}), on=key, how="left")
+    repeats = pd.DataFrame({
+        "sku": rep["sku"], "location": rep["location"], "description": rep["description"],
+        "prev_qty": rep["prev_line_qty"], "prev_dollars": rep["prev_dollars"], "prev_pattern": rep["prev_pattern"],
+        "qty": rep["qty"], "dollars": rep["dollars"], "pattern": rep["pattern"],
+        "same_direction": (rep["prev_line_qty"] > 0) == (rep["qty"] > 0),
+    })
+    repeats["_size"] = repeats["prev_dollars"].abs() + repeats["dollars"].abs()
+    repeats = repeats.sort_values(["_size", "location"], ascending=[False, True], kind="stable").drop(columns="_size").reset_index(drop=True)
+    fresh = m[~is_repeat]
+    back = pv.merge(curr_lines, on=key, how="left")
+    resolved = back[back["curr_line_qty"] == 0]
+    not_recounted = back[back["curr_line_qty"].isna()]
+
+    ps, cs = pv.groupby("sku")["abs_dollars"].sum(), cv.groupby("sku")["abs_dollars"].sum()
+    both = sorted(set(ps.index) & set(cs.index), key=lambda k: (-(ps[k] + cs[k]), k))
+    repeat_skus = [{"sku": k, "prevGross": float(ps[k]), "gross": float(cs[k])} for k in both]
+
+    pb, cb = prev.by_pattern.set_index("pattern"), curr.by_pattern.set_index("pattern")
+    causes = [{"key": k, "name": PATTERNS[k][0],
+               "prevCount": int(pb.at[k, "count"]) if k in pb.index else 0, "count": int(cb.at[k, "count"]) if k in cb.index else 0,
+               "prevGross": float(pb.at[k, "gross"]) if k in pb.index else 0.0, "gross": float(cb.at[k, "gross"]) if k in cb.index else 0.0}
+              for k in ORDER if k in pb.index or k in cb.index]
+    delta = {k: (None if prev.summary[k] is None or curr.summary[k] is None else curr.summary[k] - prev.summary[k])
+             for k in ("grossAccuracy", "netAccuracy", "locationAccuracy", "gross", "net", "varianceLines")}
+    return {"prev": prev.summary, "curr": curr.summary, "delta": delta, "causes": causes, "repeats": repeats,
+            "repeatGross": float(repeats["dollars"].abs().sum()), "fresh": int(len(fresh)), "freshGross": float(fresh["dollars"].abs().sum()),
+            "resolved": int(len(resolved)), "resolvedGross": float(resolved["dollars"].abs().sum()),
+            "notRecounted": int(len(not_recounted)), "repeatSkus": repeat_skus}
+
+
+def compare_report(c: dict) -> str:
+    p, s, d = c["prev"], c["curr"], c["delta"]
+    pts = lambda x: f"{x * 100:+.2f} pts"
+    out = ["## Compared with the previous count", "",
+           f"- Gross accuracy: {p['grossAccuracy']:.2%} → {s['grossAccuracy']:.2%} ({pts(d['grossAccuracy'])})",
+           f"- Net accuracy: {p['netAccuracy']:.2%} → {s['netAccuracy']:.2%} ({pts(d['netAccuracy'])})",
+           f"- Gross variance: {_money(p['gross'])} → {_money(s['gross'])}",
+           f"- {len(c['repeats'])} lines are off again ({_money(c['repeatGross'])} this count), {c['fresh']} are new, {c['resolved']} from last time now count clean",
+           "", "| Location | SKU | Last count | This count | Cause now |", "| --- | --- | ---: | ---: | --- |"]
+    for _, v in c["repeats"].iterrows():
+        out.append(f"| {v['location']} | {v['sku']} | {int(v['prev_qty']):+d} | {int(v['qty']):+d} | {PATTERNS[v['pattern']][0]} |")
+    return "\n".join(out)
+
+
 def report(r: Result) -> str:
     s = r.summary
     out = ["# Variance report", "",
@@ -412,6 +467,7 @@ def main(argv=None) -> None:
     ap.add_argument("--recent-days", type=int, default=3, help="movement this close to the count counts as timing")
     ap.add_argument("--out", help="write the markdown report here instead of printing it")
     ap.add_argument("--transactions", help="optional CSV of moves, receipts and picks to confirm causes")
+    ap.add_argument("--prior", help="optional earlier count of the same locations, to see what keeps coming back")
     ap.add_argument("--packs", help="comma-separated pack sizes for unit-of-measure checks, e.g. 6,12,24")
     ap.add_argument("--pair-tolerance", type=float, help="how close offsetting quantities must be, e.g. 0.15 for 15%%")
     ap.add_argument("--swap-tolerance", type=float, help="same, for look-alike swaps")
@@ -423,6 +479,8 @@ def main(argv=None) -> None:
     if a.transactions:
         attach_evidence(result, load_transactions(a.transactions), a.recent_days)
     text = report(result)
+    if a.prior:
+        text += "\n" + compare_report(compare_counts(analyze(load_count(a.prior), a.threshold, a.recent_days, **settings), result)) + "\n"
     if a.out:
         with open(a.out, "w", encoding="utf-8") as f:
             f.write(text + "\n")

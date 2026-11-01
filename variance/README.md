@@ -8,6 +8,8 @@ Variance takes a cycle count export and answers the three questions an inventory
 2. **Where are the dollars?** A Pareto view of the lines driving most of the gross variance.
 3. **Why is each line off?** Every variance is matched to its most likely root cause, and lines over the write-up threshold get a drafted audit explanation in observation → mechanism → implication form.
 
+4. **What keeps coming back?** Load an earlier count of the same locations to see the change in accuracy, the change by cause, and every line that is off in both counts. A repeat points to a process problem, not a counting one.
+
 It also builds a **recount sheet** in walking order (aisles in sequence, alternating direction, pairs kept together) with a blind-count option, ready to print or download.
 
 Everything runs in the browser. The file is never uploaded.

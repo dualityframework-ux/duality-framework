@@ -217,3 +217,54 @@ def test_sql_activity_before_count_finds_timing_lines(with_evidence):
     found = set(run_sql.run(con, "activity_before_count")["sku"])
     confirmed_timing = set(with_evidence.variances.query("pattern == 'timing' and evidence_status == 'confirmed'")["sku"])
     assert confirmed_timing <= found
+
+
+# ---------------------------------------------------------------- count over count
+
+PRIOR = ROOT / "sample_prior_count.csv"
+COMPARE = json.loads((HERE / "expected_compare_from_js.json").read_text())
+
+
+@pytest.fixture(scope="module")
+def comparison(result):
+    return va.compare_counts(va.analyze(va.load_count(PRIOR), threshold=1000, recent_days=3), result)
+
+
+def test_compare_repeats_match_javascript(comparison):
+    py = comparison["repeats"].to_dict("records")
+    js = COMPARE["repeats"]
+    assert [(r["sku"], r["location"]) for r in py] == [(r["sku"], r["location"]) for r in js]
+    for p, j in zip(py, js):
+        assert (p["prev_qty"], p["qty"], p["prev_pattern"], p["pattern"], bool(p["same_direction"])) == \
+               (j["prevQty"], j["qty"], j["prevPattern"], j["pattern"], j["sameDirection"])
+        assert p["prev_dollars"] == pytest.approx(j["prevDollars"]) and p["dollars"] == pytest.approx(j["dollars"])
+
+
+@pytest.mark.parametrize("key", ["fresh", "resolved", "notRecounted"])
+def test_compare_counts_match_javascript(comparison, key):
+    assert comparison[key] == COMPARE[key]
+
+
+@pytest.mark.parametrize("key", ["repeatGross", "freshGross", "resolvedGross"])
+def test_compare_dollars_match_javascript(comparison, key):
+    assert comparison[key] == pytest.approx(COMPARE[key])
+
+
+def test_compare_deltas_and_causes_match_javascript(comparison):
+    for k, v in COMPARE["delta"].items():
+        assert comparison["delta"][k] == pytest.approx(v, rel=1e-9, abs=1e-12)
+    assert [(c["key"], c["prevCount"], c["count"]) for c in comparison["causes"]] == [(c["key"], c["prevCount"], c["count"]) for c in COMPARE["causes"]]
+    for p, j in zip(comparison["causes"], COMPARE["causes"]):
+        assert p["prevGross"] == pytest.approx(j["prevGross"]) and p["gross"] == pytest.approx(j["gross"])
+    assert [s["sku"] for s in comparison["repeatSkus"]] == [s["sku"] for s in COMPARE["repeatSkus"]]
+
+
+def test_compare_report_lists_repeats(comparison):
+    text = va.compare_report(comparison)
+    assert "| C-14-02 | BAT-5100 | -8 | -12 | Mislocated stock |" in text
+
+
+def test_sql_repeat_variances_match_python(comparison):
+    con = run_sql.connect(SAMPLE, prior_path=PRIOR)
+    df = run_sql.run(con, "repeat_variances")
+    assert set(zip(df["sku"], df["location"])) == set(zip(comparison["repeats"]["sku"], comparison["repeats"]["location"]))
