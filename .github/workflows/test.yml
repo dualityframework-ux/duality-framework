@@ -49,3 +49,4 @@ jobs:
       - run: python tests/browser_variance.py
       - run: python tests/browser_home.py
       - run: python tests/browser_case_study.py
+      - run: python tests/browser_frame2.py
