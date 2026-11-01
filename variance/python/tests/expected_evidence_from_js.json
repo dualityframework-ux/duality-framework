@@ -1,7 +1,7 @@
 {
  "tally": {
-  "confirmed": 4,
-  "supported": 4,
+  "confirmed": 2,
+  "supported": 6,
   "none": 20,
   "transactions": 11
  },
@@ -22,13 +22,13 @@
    "sku": "ALT-2400",
    "location": "D-03-01",
    "status": "supported",
-   "text": "History shows a putaway of 7 from DOCK-03 to D-21-03 on Oct 21, not a move from the paired slot. Check where the stock came from."
+   "text": "History shows a putaway of 7 from DOCK-03 to D-21-03 on Oct 21, which does not match the full transfer evidence for this variance. Check quantity and source location."
   },
   {
    "sku": "ALT-2400",
    "location": "D-21-03",
    "status": "supported",
-   "text": "History shows a putaway of 7 from DOCK-03 to D-21-03 on Oct 21, not a move from the paired slot. Check where the stock came from."
+   "text": "History shows a putaway of 7 from DOCK-03 to D-21-03 on Oct 21, which does not match the full transfer evidence for this variance. Check quantity and source location."
   },
   {
    "sku": "BRK-4410",
@@ -51,14 +51,14 @@
   {
    "sku": "STR-2500",
    "location": "B-19-02",
-   "status": "confirmed",
-   "text": "Activity just before the count: a pick of 4 out of B-19-02 on Oct 28."
+   "status": "supported",
+   "text": "Activity just before the count: a pick of 4 out of B-19-02 on Oct 28. Posting status still needs review."
   },
   {
    "sku": "SEN-3200",
    "location": "F-02-05",
-   "status": "confirmed",
-   "text": "Activity just before the count: a receipt of 6 from DOCK-01 to F-02-05 on Oct 29."
+   "status": "supported",
+   "text": "Activity just before the count: a receipt of 6 from DOCK-01 to F-02-05 on Oct 29. Posting status still needs review."
   },
   {
    "sku": "SEN-3100",

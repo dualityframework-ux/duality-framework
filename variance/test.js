@@ -72,8 +72,8 @@ const evOf = (sku, loc) => ev.variances.find(v => v.sku === sku && v.location ==
 assert.strictEqual(evOf("BAT-5100", "C-15-04").status, "confirmed", "battery move confirmed (over slot)");
 assert.strictEqual(evOf("BAT-5100", "C-14-02").status, "confirmed", "battery move confirmed (short slot)");
 assert.strictEqual(evOf("ALT-2400", "D-21-03").status, "supported", "alternator only supported: came from the dock");
-assert.strictEqual(evOf("SEN-3200", "F-02-05").status, "confirmed", "timing confirmed by receipt");
-assert.strictEqual(evOf("STR-2500", "B-19-02").status, "confirmed", "timing confirmed by pick");
+assert.strictEqual(evOf("SEN-3200", "F-02-05").status, "supported", "timing supported by receipt");
+assert.strictEqual(evOf("STR-2500", "B-19-02").status, "supported", "timing supported by pick");
 assert.strictEqual(evOf("SEN-3100", "D-08-04").status, "supported", "found stock supported");
 assert.strictEqual(evOf("PMP-4100", "A-22-01").status, "supported", "empty location supported");
 assert.ok(E.explain(ev.variances.find(v => v.sku === "BAT-5100" && v.location === "C-14-02")).text.includes("Evidence:"), "write-up cites evidence");
@@ -100,6 +100,14 @@ assert.strictEqual(self.repeats.length, r.variances.length, "a count compared to
 assert.strictEqual(self.fresh, 0); assert.strictEqual(self.resolved, 0);
 assert.strictEqual(E.samplePriorCSV("2026-10-31"), E.samplePriorCSV("2026-10-31"), "prior sample is deterministic");
 
+// Evidence must not confirm a cause from an unrelated quantity or future transfer.
+for (const altered of [
+  tx.txns.map(t=>t.sku === "BAT-5100" ? {...t, qty:1} : t),
+  tx.txns.map(t=>t.sku === "BAT-5100" ? {...t, date:new Date("2026-11-10T12:00:00")} : t),
+]) {
+  const checked = E.attachEvidence(E.analyze(records), altered);
+  assert.ok(checked.variances.filter(v=>v.sku === "BAT-5100").every(v=>v.evidence.status !== "confirmed"));
+}
 console.log("all checks passed");
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),

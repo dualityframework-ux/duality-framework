@@ -33,11 +33,11 @@ Each variance line is tested in this order and takes the first match:
 
 Add a second CSV of moves, receipts and picks (date, SKU, from location, to location, quantity, type) and Variance checks the history against each diagnosis:
 
-- **Confirmed:** a mislocated pair with the actual transfer between the two slots, or a timing variance with activity in the days before the count.
-- **Supported:** history consistent with the cause but not proof, such as a putaway into the over slot from somewhere other than the paired slot.
+- **Matching transfer:** the same SKU moved between the paired slots, with the variance quantity, on or before the count. This verifies a matching transaction, not the cause of the variance.
+- **Supported:** history consistent with a cause but not proof, including recent activity for a timing hypothesis. Posting status still needs review.
 - Write-ups gain an **Evidence** line citing the transaction.
 
-The page has a sample history that goes with the sample count: it confirms 4 lines and supports 4.
+The page has a sample history that goes with the sample count: it matches transfers for 2 lines and supports 6.
 
 ## Settings
 
@@ -66,3 +66,6 @@ The same analysis, including transaction-history evidence, is also written in pa
 The sample count is synthetic: 164 lines with mislocations, UOM errors, a transposition, a look-alike swap, timing issues, empty and found locations, and one counter with a high error rate planted in it.
 
 Built by Ian Kachadorian from years of root-causing cycle count variances in distribution centers.
+
+The internal `confirmed` status and SQL query name `confirmed_mislocations` are
+retained for compatibility; both mean matching transfer evidence, not causal proof.

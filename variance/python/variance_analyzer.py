@@ -317,25 +317,31 @@ def attach_evidence(r: Result, txns: pd.DataFrame, recent_days: int = 3) -> dict
     for _, v in r.variances.iterrows():
         rows = by_sku.get(v["sku"], [])
         cd = v["count_date"] if pd.notna(v["count_date"]) else count_date
+        rows = [t for t in rows if pd.notna(cd) and t["date"] <= cd]
         into = [t for t in rows if t["to"] == v["location"]]
         out_of = [t for t in rows if t["from"] == v["location"]]
         status, text = "none", "No transactions for this item and location in the history."
         if v["pattern"] == "mislocated" and v["partner"]:
+            partner = r.variances[(r.variances["sku"] == v["sku"]) & (r.variances["location"] == v["partner"])]
+            def matches_qty(t):
+                return (not partner.empty and pd.notna(t["qty"])
+                        and abs(t["qty"] - abs(v["qty"])) < 1e-9
+                        and abs(t["qty"] - abs(partner.iloc[0]["qty"])) < 1e-9)
             if v["qty"] > 0:
-                exact = next((t for t in into if t["from"] == v["partner"]), None)
+                exact = next((t for t in into if t["from"] == v["partner"] and matches_qty(t)), None)
                 loose = into[0] if into else None
             else:
-                exact = next((t for t in out_of if t["to"] == v["partner"]), None)
+                exact = next((t for t in out_of if t["to"] == v["partner"] and matches_qty(t)), None)
                 loose = next((t for t in rows if t["to"] == v["partner"]), None)
             if exact:
                 status, text = "confirmed", f"History shows {_describe(exact)}, which matches the offsetting pair."
             elif loose:
-                status, text = "supported", f"History shows {_describe(loose)}, not a move from the paired slot. Check where the stock came from."
+                status, text = "supported", f"History shows {_describe(loose)}, which does not match the full transfer evidence for this variance. Check quantity and source location."
         elif v["pattern"] == "timing":
             recent = [t for t in rows if (t["to"] == v["location"] or t["from"] == v["location"]) and pd.notna(cd)
                       and 0 <= (cd - t["date"]).total_seconds() / 86400 <= recent_days]
             if recent:
-                status, text = "confirmed", "Activity just before the count: " + "; ".join(_describe(t) for t in recent) + "."
+                status, text = "supported", "Activity just before the count: " + "; ".join(_describe(t) for t in recent) + ". Posting status still needs review."
         elif v["pattern"] == "found":
             if into:
                 status, text = "supported", f"History shows {_describe(into[0])}. The system doesn't show the stock, so the move may not have posted to this location."
@@ -441,7 +447,7 @@ def report(r: Result) -> str:
            f"- Gross accuracy: {s['grossAccuracy']:.2%} · Net accuracy: {s['netAccuracy']:.2%}",
            f"- Gross variance: {_money(s['gross'])} · Net variance: {_money(s['net'])}",
            f"- {r.for80} lines drive 80% of gross variance",
-           *([f"- Transaction history confirms {r.evidence['confirmed']} and supports {r.evidence['supported']} of {s['varianceLines']} lines"] if r.evidence else []), "",
+           *([f"- Transaction history matches transfers for {r.evidence['confirmed']} and supports {r.evidence['supported']} of {s['varianceLines']} lines"] if r.evidence else []), "",
            "## Likely causes", "", "| Cause | Lines | Gross $ | Share |", "| --- | ---: | ---: | ---: |"]
     for _, p in r.by_pattern.iterrows():
         out.append(f"| {p['name']} | {p['count']} | {_money(p['gross'])} | {p['gross'] / s['gross']:.0%} |")
@@ -453,7 +459,7 @@ def report(r: Result) -> str:
         x = explain(v)
         out += [f"### {v['location']} · {v['sku']} · {_money(v['dollars'])}", "",
                 f"**Observation.** {x['observation']}  ", f"**Mechanism.** {x['mechanism']}  ",
-                *([f"**Evidence.** {x['evidence']}  "] if x["evidence"] else []),
+                *([f"**Evidence.** {x['evidence']}<br>"] if x["evidence"] else []),
                 f"**Implication.** {x['implication']}", ""]
     if r.flagged_counters:
         out += ["## Counters", "", f"Flagged for a variance rate well above the team's: {', '.join(r.flagged_counters)}", ""]
@@ -466,7 +472,7 @@ def main(argv=None) -> None:
     ap.add_argument("--threshold", type=float, default=1000, help="dollar threshold for a written root cause")
     ap.add_argument("--recent-days", type=int, default=3, help="movement this close to the count counts as timing")
     ap.add_argument("--out", help="write the markdown report here instead of printing it")
-    ap.add_argument("--transactions", help="optional CSV of moves, receipts and picks to confirm causes")
+    ap.add_argument("--transactions", help="optional CSV of moves, receipts and picks to assess evidence")
     ap.add_argument("--prior", help="optional earlier count of the same locations, to see what keeps coming back")
     ap.add_argument("--packs", help="comma-separated pack sizes for unit-of-measure checks, e.g. 6,12,24")
     ap.add_argument("--pair-tolerance", type=float, help="how close offsetting quantities must be, e.g. 0.15 for 15%%")

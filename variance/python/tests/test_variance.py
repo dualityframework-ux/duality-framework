@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -196,7 +197,7 @@ def test_evidence_matches_javascript_line_by_line(with_evidence):
 def test_report_cites_evidence(with_evidence):
     text = va.report(with_evidence)
     assert "**Evidence.** History shows a replenishment of 12 from C-14-02 to C-15-04" in text
-    assert "confirms 4 and supports 4" in text
+    assert "matches transfers for 2 and supports 6" in text
 
 
 def test_bad_transaction_file(tmp_path):
@@ -215,7 +216,7 @@ def test_sql_confirms_battery_mislocation_only():
 def test_sql_activity_before_count_finds_timing_lines(with_evidence):
     con = run_sql.connect(SAMPLE, TXNS)
     found = set(run_sql.run(con, "activity_before_count")["sku"])
-    confirmed_timing = set(with_evidence.variances.query("pattern == 'timing' and evidence_status == 'confirmed'")["sku"])
+    confirmed_timing = set(with_evidence.variances.query("pattern == 'timing' and evidence_status == 'supported'")["sku"])
     assert confirmed_timing <= found
 
 
@@ -268,3 +269,25 @@ def test_sql_repeat_variances_match_python(comparison):
     con = run_sql.connect(SAMPLE, prior_path=PRIOR)
     df = run_sql.run(con, "repeat_variances")
     assert set(zip(df["sku"], df["location"])) == set(zip(comparison["repeats"]["sku"], comparison["repeats"]["location"]))
+
+
+@pytest.mark.parametrize("change", ["quantity", "future"])
+def test_unrelated_transfer_does_not_confirm_evidence(change):
+    result = va.analyze(va.load_count(SAMPLE))
+    tx = va.load_transactions(TXNS)
+    if change == "quantity":
+        tx.loc[tx.sku == "BAT-5100", "qty"] = 1
+    else:
+        tx.loc[tx.sku == "BAT-5100", "date"] = pd.Timestamp("2026-11-10")
+    va.attach_evidence(result, tx)
+    assert not (result.variances.loc[result.variances.sku == "BAT-5100", "evidence_status"] == "confirmed").any()
+
+
+@pytest.mark.parametrize("change", ["quantity", "future"])
+def test_sql_requires_matching_transfer_quantity_and_date(change):
+    con = run_sql.connect(SAMPLE, TXNS)
+    if change == "quantity":
+        con.execute("UPDATE transactions SET qty=1 WHERE sku='BAT-5100'")
+    else:
+        con.execute("UPDATE transactions SET date='2026-11-10' WHERE sku='BAT-5100'")
+    assert run_sql.run(con, "confirmed_mislocations").empty

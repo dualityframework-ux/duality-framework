@@ -148,7 +148,7 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
       <div class="field"><label for="thr">Write-up threshold</label><input id="thr" type="number" min="0" step="50" value="1000"></div>
       <div class="field"><label for="days">Recent movement (days)</label><input id="days" type="number" min="0" max="30" step="1" value="3"></div>
     </div>
-    <div class="bar hist"><span class="note"><b>Transaction history</b> (optional): moves, receipts and picks, to confirm each cause.</span>
+    <div class="bar hist"><span class="note"><b>Transaction history</b> (optional): moves, receipts and picks, to check the evidence for each cause.</span>
       <label class="btn ghost tiny" for="txFile">Upload history CSV</label><input id="txFile" type="file" accept=".csv,text/csv">
       <button class="ghost tiny" id="txSample">Load sample history</button><span id="txMsg" class="note" role="status"></span></div>
     <div class="bar hist"><span class="note"><b>Previous count</b> (optional): an earlier count of the same locations, to see what keeps coming back.</span>
@@ -274,7 +274,7 @@ function compareSection(c){
     </tbody></table></div>
   </section>`;
 }
-function evBadge(v){ const st = v.evidence && v.evidence.status; return st === "confirmed" ? ' <span class="evb ok" title="Confirmed by transaction history">✓ confirmed</span>' : st === "supported" ? ' <span class="evb maybe" title="Supported by transaction history">supported</span>' : ""; }
+function evBadge(v){ const st = v.evidence && v.evidence.status; return st === "confirmed" ? ' <span class="evb ok" title="Matching transfer, quantity and date; cause still needs review">✓ matching transfer</span>' : st === "supported" ? ' <span class="evb maybe" title="Supported by transaction history">supported</span>' : ""; }
 function niceStep(max){ const raw = max/4, p = Math.pow(10, Math.floor(Math.log10(raw||1))); return [1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw) || raw; }
 function shortMoney(v){ return v>=1000 ? "$"+(v/1000).toFixed(v%1000?1:0)+"k" : "$"+Math.round(v); }
 
@@ -303,7 +303,7 @@ function render(){
     <section class="sheet" aria-labelledby="c-h">
       <h2 id="c-h">Likely causes</h2>
       <p class="sub">${top ? `<b>${esc(top.name)}</b> is the biggest explained driver at ${money(top.gross)} gross.` : "No common pattern matched these variances."} Tap a cause to filter the lines below.</p>
-      ${r.evidence ? `<p class="sub">Transaction history <b class="ok">confirms ${r.evidence.confirmed}</b> and <b class="maybe">supports ${r.evidence.supported}</b> of ${r.variances.length} lines (${r.evidence.transactions} transactions from ${esc(txLabel)}).</p>` : ""}
+      ${r.evidence ? `<p class="sub">Transaction history <b class="ok">matches transfers for ${r.evidence.confirmed}</b> and <b class="maybe">supports ${r.evidence.supported}</b> of ${r.variances.length} lines (${r.evidence.transactions} transactions from ${esc(txLabel)}).</p>` : ""}
       <div class="causes">${r.byPattern.map(p=>`<button class="cause ${filter===p.key?"on":""}" data-p="${p.key}" aria-pressed="${filter===p.key}">
         <span class="cname">${esc(p.name)}<small>${p.count} line${p.count===1?"":"s"}</small></span>
         <span class="track" aria-hidden="true"><i style="width:${(p.gross/s.gross*100).toFixed(1)}%"></i></span>
