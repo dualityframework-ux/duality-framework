@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Why a 99% count can hide $11,000 · Duality</title>
+<meta name="description" content="Net inventory accuracy lets overages cancel shortages. Gross accuracy doesn't. On one sample count, the gap is 99.01% versus 94.32%, and $11,562 of stock in the wrong place.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why a 99% count can hide $11,000">
+<meta property="og:description" content="Net vs. gross inventory accuracy, with a worked example. By Ian Kachadorian.">
+<meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/variance/preview.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://dualityframework-ux.github.io/duality-framework/notes/gross-vs-net.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<style>
+/* Layout: a single readable column in the Duality palette; numbers in mono */
+:root{color-scheme:dark;--bg:#0a0a11;--surface:#15131e;--line:#302b3b;--fg:#f4f2ff;--muted:#aaa7bb;--accent:#ad91ff;--good:#7fd1a8;--bad:#f2a0a0;
+  --f-body:system-ui,-apple-system,"Segoe UI",sans-serif;--f-num:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.7 var(--f-body)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.wrap{max-width:42rem;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:28px 72px}
+.crumb{font-size:.88rem;color:var(--muted)}
+.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.18em;font-size:.74rem;font-weight:700;margin:40px 0 8px}
+h1{font-size:clamp(2rem,6vw,2.8rem);line-height:1.08;letter-spacing:-.035em;margin:0 0 14px;text-wrap:balance}
+.dek{color:var(--muted);font-size:1.15rem;margin:0 0 18px}
+.meta{font-size:.86rem;color:var(--muted);padding-bottom:22px;border-bottom:1px solid var(--line)}
+h2{font-size:1.35rem;letter-spacing:-.02em;margin:40px 0 10px;text-wrap:balance}
+p{margin:0 0 16px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:.92em}
+.formula{font-family:var(--f-num);font-size:.92rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0 18px;overflow-x:auto;white-space:pre}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.compare>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.compare .v{font-family:var(--f-num);font-size:2rem;font-weight:700;letter-spacing:-.02em}
+.compare .k{color:var(--muted);font-size:.9rem}
+.scroll{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th{text-align:left;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--muted)}
+td{padding:8px 6px;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.callout{border-left:3px solid var(--accent);background:var(--surface);border-radius:8px;padding:14px 16px;margin:20px 0}
+.callout p:last-child{margin:0}
+.end{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.95rem}
+@media(max-width:520px){.compare{grid-template-columns:1fr}.formula{font-size:.78rem}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="crumb" aria-label="Breadcrumb"><a href="../">Duality</a> / <a href="../#notes">Notes</a></nav>
+  <p class="eyebrow">Note</p>
+  <h1>Why a 99% count can hide $11,000</h1>
+  <p class="dek">Net inventory accuracy lets overages cancel shortages. Gross accuracy doesn't. The gap between them is where the real work is.</p>
+  <p class="meta">Ian Kachadorian · October 2026 · 4 min read</p>
+
+  <h2>Two numbers from the same count</h2>
+  <p>Take one cycle count: 164 locations, about $204,000 of stock on the books. Run it through <a href="../variance/">Variance</a> and you get two accuracy figures.</p>
+  <div class="compare" role="list">
+    <div role="listitem"><div class="v">99.01%</div><div class="k">Net accuracy</div></div>
+    <div role="listitem"><div class="v">94.32%</div><div class="k">Gross accuracy</div></div>
+  </div>
+  <p>Same count, same items, same day. One number says the building is nearly perfect. The other says about one dollar in eighteen is wrong.</p>
+
+  <h2>What each one measures</h2>
+  <p><b>Net accuracy</b> adds up every variance with its sign. Overages are positive, shortages are negative, and they cancel.</p>
+  <div class="formula">net accuracy   = 1 − | sum of variance dollars | ÷ book value
+               = 1 − | +$4,777.90 − $6,784.35 | ÷ $203,651.85
+               = 1 − $2,006.45 ÷ $203,651.85  =  99.01%</div>
+  <p><b>Gross accuracy</b> adds up every variance as a positive number. Nothing cancels.</p>
+  <div class="formula">gross accuracy = 1 − sum of | variance dollars | ÷ book value
+               = 1 − ($4,777.90 + $6,784.35) ÷ $203,651.85
+               = 1 − $11,562.25 ÷ $203,651.85  =  94.32%</div>
+  <p>Net answers a finance question: how far off is the inventory value on the balance sheet? Gross answers an operations question: how much stock is not where the system says it is?</p>
+
+  <h2>Where the cancelling happens</h2>
+  <p>Two of the largest lines in this count show why the two diverge.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Location</th><th>Item</th><th class="r">Units</th><th class="r">Dollars</th></tr></thead>
+    <tbody>
+      <tr><td>C-15-04</td><td>Battery, group 24F</td><td class="r pos">+12</td><td class="r pos">+$1,704.00</td></tr>
+      <tr><td>C-14-02</td><td>Battery, group 24F</td><td class="r neg">−12</td><td class="r neg">−$1,704.00</td></tr>
+    </tbody>
+  </table></div>
+  <p>Twelve batteries are in the slot next door. To net accuracy, that is zero: the plus and the minus cancel, and the books are right. To gross accuracy, it is $3,408 of variance, and to a picker it is a real problem. The next order for that battery goes to C-14-02, finds six instead of eighteen, and either short-ships or triggers a hunt.</p>
+  <p>Every mislocation works this way. So do look-alike swaps, where two similar items are each off by the same amount in opposite directions. They are invisible to net accuracy and fully visible to gross.</p>
+
+  <div class="callout"><p><b>The rule of thumb:</b> a big gap between net and gross accuracy usually means stock in the wrong place, not stock that is gone. Shrink pulls both numbers down together. Mislocation pulls down gross alone.</p></div>
+
+  <h2>Which number to watch</h2>
+  <p>Both. Report net to finance, because it is what the books care about. Run the floor on gross, because it is what pickers, replenishment and customers feel. And watch the gap: in this count it is nearly five points, and more than half of the gross dollars come from mislocated stock.</p>
+  <p>The cycle count program I ran covered 250,000+ locations a trimester, and we reported both: 97.5% gross and 99% net. The second number alone would have hidden most of the work. A team can hit 99% net while the floor is quietly getting harder to pick from.</p>
+
+  <p class="end">The numbers here come from Variance's synthetic sample count. Load it yourself in <a href="../variance/">Variance</a>, or read how the tool works in the <a href="../variance/case-study.html">case study</a>.</p>
+</main>
+</body>
+</html>

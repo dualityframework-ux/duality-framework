@@ -33,4 +33,4 @@ jobs:
           python-version: "3.11"
       - run: pip install playwright
       - name: WCAG AA contrast, light and dark
-        run: python tests/check_contrast.py index.html variance/index.html variance/case-study.html frame2/index.html frame2/case-study.html
+        run: python tests/check_contrast.py index.html variance/index.html variance/case-study.html frame2/index.html frame2/case-study.html notes/gross-vs-net.html
