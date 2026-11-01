@@ -72,7 +72,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
   <h2>The approach</h2>
 
   <h3>1. One row per season</h3>
-  <p>The dataset covers every Red Sox season from 1967 to 2024: wins and losses, run differential, team OPS, OBP and SLG, ERA and unverified FIP, the playoff result, the manager, the key players, and a one-sentence summary of what drove the season.</p>
+  <p>The dataset covers every Red Sox season from 1967 to 2024: wins and losses, run differential, team OPS, OBP and SLG, ERA and FIP, the playoff result, the manager, the key players, and a one-sentence summary of what drove the season.</p>
 
   <h3>2. Tag each season against what its run differential was worth</h3>
   <p>Each season gets an <b>expected win total</b> from its run differential, using the rule of thumb that about 10 runs are worth one win: <span class="num">81 + run diff ÷ 10</span>. Both the record and the expectation are scaled to 162 games, so strike years and 2020's 60-game season are judged fairly. <b>Luck</b> is the gap between the two.</p>
@@ -91,7 +91,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
   <p>Every insight follows observation, mechanism, implication. For 2024: the team finished 81–81; run differential was +4, so the record matched the process; an average team got an average result, with nothing to chase or excuse.</p>
 
   <h3>4. Ship it as tools</h3>
-  <p>The Python and Streamlit app has a season explorer, an era comparison, a franchise timeline, a post generator and a manual game simulator. Automated tests run in CI. The <a href="./">live timeline</a> is generated directly from the canonical CSV. Seven ERA corrections follow archived MLB Stats API responses; four unsupported contributor names were removed. <a href="https://github.com/dualityframework-ux/frame2_mvp/blob/improvements/sourced-history/docs/DATA_AUDIT.md">Review the source audit and correction log</a>. FIP remains unverified and is excluded from comparative radar charts. Roster membership does not establish relative contribution, and narratives remain curated interpretations.</p>
+  <p>The Python and Streamlit app has a season explorer, an era comparison, a franchise timeline, a post generator and a manual game simulator. Automated tests run in CI. The <a href="./">live timeline</a> is generated directly from the canonical CSV. Seven ERA corrections follow archived MLB Stats API responses; four unsupported contributor names were removed. <a href="https://github.com/dualityframework-ux/frame2_mvp/blob/main/docs/DATA_AUDIT.md">Review the source audit and correction log</a>. MLB doesn't publish team FIP, so I compute it from MLB's own counts with the standard formula. Doing that showed the earlier FIP values were unreliable: only 10 of 58 were within 0.05 of the computed figure, so all 58 were replaced, with every input recorded. FIP stays out of the radar charts. Roster membership does not establish relative contribution, and narratives remain curated interpretations.</p>
 
   <h2>What it found</h2>
   <div class="scroll"><table>
