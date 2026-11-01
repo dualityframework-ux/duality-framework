@@ -375,3 +375,20 @@ def test_homepage_method_example_matches_the_sample():
     for quoted in [f"{acc.net_accuracy * 100:.2f}% accurate on net", f"gross accuracy is {acc.gross_accuracy * 100:.2f}%",
                    f"{cross} of {len(pareto)} variance lines carry 80%", f"research those {cross} lines first"]:
         assert quoted in page, quoted
+
+
+def test_one_pager_figures_match_the_sample():
+    page = (ROOT.parent / "one-pager.html").read_text()
+    con = run_sql.connect(SAMPLE)
+    acc = run_sql.run(con, "accuracy").iloc[0]
+    pareto = run_sql.run(con, "pareto")
+    cross = int((pareto["cumulative_share"] < 0.8).sum()) + 1
+    for quoted in [f"{acc.net_accuracy * 100:.2f}%", f"{acc.gross_accuracy * 100:.2f}%",
+                   f"still hide ${acc.gross_variance:,.0f} of variance", f"${acc.gross_variance:,.0f}</div>",
+                   f"behind a ${abs(acc.net_variance):,.0f} net", f"{cross} of {len(pareto)}</div>",
+                   f"count of {int(acc.lines)} lines with {len(PLANTED)} problems planted", f"all {len(PLANTED)} were classified correctly"]:
+        assert quoted in page, quoted
+    line = pd.read_sql_query("SELECT * FROM line_variance WHERE location = 'C-14-02' AND sku = 'BAT-5100'", con).iloc[0]
+    for quoted in [f"system {int(line.system_qty)}, counted {int(line.counted_qty)}", f"−{abs(int(line.var_units))}</span> units",
+                   f"−${abs(line.var_dollars):,.2f}"]:
+        assert quoted in page, quoted
