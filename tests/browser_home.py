@@ -1,4 +1,4 @@
-"""Homepage update history stays reachable by touch and keyboard, without JS."""
+"""Homepage navigation, highlights and change log work by touch and keyboard, without JS."""
 import os
 from pathlib import Path
 
@@ -57,25 +57,26 @@ with sync_playwright() as playwright:
                 target = ROOT / path
                 assert target.is_file(), href
                 assert f'id="{anchor}"' in target.read_text(), href
-        expect(page.locator('#log > ol > li')).to_have_count(3)
-        history = page.locator('.log-history')
-        older = history.locator('li').first
-        expect(older).not_to_be_visible()
-        toggle = history.locator('summary')
-        expect(toggle).to_have_accessible_name('Show older updates')
-        toggle.click()
-        expect(older).to_be_visible()
-        expect(history.get_by_role('link', name='Try it').last).to_be_visible()
-        expect(toggle).to_have_accessible_name('Hide older updates')
-        toggle.focus()
-        page.keyboard.press('Enter')
-        expect(older).not_to_be_visible()
-        page.keyboard.press('Space')
-        expect(older).to_be_visible()
+        # Three highlights on the homepage; the full history lives on the change log.
+        highlights = page.locator('#log > ol > li')
+        expect(highlights).to_have_count(3)
+        titles = [t.strip() for t in highlights.locator('b').all_inner_texts()]
+        expect(page.locator('.log-history')).to_have_count(0)
+        changelog = page.get_by_role('link', name='See every change in the change log →')
+        expect(changelog).to_have_attribute('href', './changelog.html')
+        assert page.locator('body').evaluate('() => document.documentElement.scrollWidth') <= width
+        changelog.click()
+        expect(page.locator('h1')).to_have_text('Every change, newest first.')
+        logged = [t.strip() for t in page.locator('#log > ol > li b').all_inner_texts()]
+        assert all(t in logged for t in titles), 'Every highlight is also in the change log'
+        for href in page.locator('#log a').evaluate_all('links => links.map(a => a.getAttribute("href"))'):
+            if href.startswith('./'):
+                path = href[2:].split('#')[0] or 'index.html'
+                assert (ROOT / path).exists() or (ROOT / path / 'index.html').exists(), href
         assert page.locator('body').evaluate('() => document.documentElement.scrollWidth') <= width
         for scheme in ('light', 'dark'):
             page.emulate_media(color_scheme=scheme)
-            assert not page.evaluate(CHECK), f'Expanded history contrast failed at {width}px ({scheme})'
+            assert not page.evaluate(CHECK), f'Change log contrast failed at {width}px ({scheme})'
         page.close()
     browser.close()
-print('Homepage history: touch, keyboard, and expanded phone layout passed')
+print('Homepage: navigation, highlights and change log passed at phone and desktop widths')
