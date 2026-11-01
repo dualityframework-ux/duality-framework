@@ -14,7 +14,7 @@ with sync_playwright() as playwright:
         page.route('https://**', lambda route: route.abort())
         page.goto((ROOT / 'variance/case-study.html').as_uri())
         contents = page.get_by_role('navigation', name='On this page', exact=True)
-        expect(contents.get_by_role('link')).to_have_count(5)
+        expect(contents.get_by_role('link')).to_have_count(6)
         for link in contents.get_by_role('link').all():
             target = link.get_attribute('href')
             bounds = link.bounding_box()

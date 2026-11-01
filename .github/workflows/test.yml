@@ -11,6 +11,7 @@ jobs:
         with:
           node-version: 20
       - run: node variance/test.js
+      - run: node variance/challenge-test.js
   python:
     runs-on: ubuntu-latest
     defaults:

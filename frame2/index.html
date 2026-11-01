@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <meta name="theme-color" content="#0d1117">
 <title>Red Sox Franchise Timeline</title>
-<meta name="description" content="Every Red Sox season from 1967 to 2024: wins, run differential and whether the record matched the process. Built with frame².">
+<meta name="description" content="Every Red Sox season from 1967 to 2024: wins, run differential and how the record compares with a run-differential estimate. Built with frame².">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Red Sox Franchise Timeline · frame²">
-<meta property="og:description" content="Every Red Sox season from 1967 to 2024: wins, run differential and whether the record matched the process.">
+<meta property="og:description" content="Every Red Sox season from 1967 to 2024: wins, run differential and how the record compares with a run-differential estimate.">
 <meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/frame2/preview.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://dualityframework-ux.github.io/duality-framework/frame2/">
@@ -290,7 +290,7 @@ footer{padding:28px var(--gap);text-align:center;color:var(--muted);font-size:.7
 <!-- PROCESS SCATTER -->
 <section id="process">
   <div class="section-head container">
-    <div class="section-title">Process vs Result — 58 Seasons</div>
+    <div class="section-title">Run Differential vs Wins — 58 Seasons</div>
     <div class="section-pill">Wins vs Run Differential</div>
   </div>
   <div class="charts-grid container">
@@ -299,11 +299,12 @@ footer{padding:28px var(--gap);text-align:center;color:var(--muted);font-size:.7
       <div class="chart-canvas-wrap" style="height:280px"><canvas id="scatterChart"></canvas></div>
     </div>
   </div>
+  <p class="container" style="color:var(--muted)">Tags compare win pace with a simple run-differential estimate. The gap can reflect chance, omitted factors or formula error; it does not establish luck or predict future results. <a href="./case-study.html#limits">Read the method’s limits</a>.</p>
   <div class="scatter-info container">
-    <div class="scatter-legend-item"><div class="legend-dot" style="background:var(--signal)"></div>Signal — Elite process AND elite result</div>
-    <div class="scatter-legend-item"><div class="legend-dot" style="background:var(--balanced)"></div>Balanced — Process matched result</div>
-    <div class="scatter-legend-item"><div class="legend-dot" style="background:var(--over)"></div>Overperformed — Wins exceeded process</div>
-    <div class="scatter-legend-item"><div class="legend-dot" style="background:var(--under)"></div>Underperformed — Process exceeded wins</div>
+    <div class="scatter-legend-item"><div class="legend-dot" style="background:var(--signal)"></div>Signal — High win pace close to the estimate</div>
+    <div class="scatter-legend-item"><div class="legend-dot" style="background:var(--balanced)"></div>Balanced — Outside the other tag rules</div>
+    <div class="scatter-legend-item"><div class="legend-dot" style="background:var(--over)"></div>Overperformed — Win pace above the estimate</div>
+    <div class="scatter-legend-item"><div class="legend-dot" style="background:var(--under)"></div>Underperformed — Win pace below the estimate</div>
   </div>
 </section>
 

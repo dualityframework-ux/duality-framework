@@ -17,8 +17,13 @@ with sync_playwright() as playwright:
         for link in page.locator('nav .links a, footer .links a').all():
             bounds = link.bounding_box()
             assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Navigation tap area is too small'
-        page.get_by_role('navigation').get_by_role('link', name='About', exact=True).click()
-        expect(page.locator('#about h2')).to_be_in_viewport()
+        # Every section remains reachable by keyboard with JavaScript disabled.
+        for link in page.locator('nav .links a').all():
+            target = link.get_attribute('href')
+            link.focus()
+            page.keyboard.press('Enter')
+            expect(page.locator(target + ' h2')).to_be_in_viewport()
+            assert page.url.endswith(target)
         page.locator('footer').get_by_role('link', name='Back to top ↑', exact=True).click()
         expect(page.locator('h1')).to_be_in_viewport()
         expect(page).to_have_url((ROOT / 'index.html').as_uri() + '#top')

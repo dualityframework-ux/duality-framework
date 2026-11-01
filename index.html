@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0a11">
-<meta name="description" content="Duality is Ian Kachadorian's studio of small tools that explain why the numbers moved: in a bank balance, a baseball season or a warehouse count.">
-<title>Duality — See the signal</title>
+<meta name="description" content="Ian Kachadorian’s analyst portfolio: inventory investigations, cash-flow planning and data analysis, backed by experience in inventory control and fund accounting.">
+<title>Ian Kachadorian — Analyst Portfolio | Duality</title>
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Duality — See the signal">
-<meta property="og:description" content="Small tools that explain why the numbers moved. By Ian Kachadorian.">
+<meta property="og:title" content="Ian Kachadorian — Analyst Portfolio | Duality">
+<meta property="og:description" content="Inventory, operations and financial analysis. Explore working tools, case studies, Python and SQL by Ian Kachadorian.">
 <meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/assets/social-preview.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://dualityframework-ux.github.io/duality-framework/">
@@ -31,7 +31,7 @@ nav{display:flex;justify-content:space-between;align-items:center;gap:16px;paddi
 nav .links a,footer .links a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:8px 0}
 .eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.2em;font-size:.74rem;font-weight:700;margin:0}
 .hero{padding-block:96px 104px}
-h1{font-size:clamp(3.2rem,9vw,7rem);letter-spacing:-.06em;line-height:1.02;margin:16px 0 24px;text-wrap:balance}
+h1{font-size:clamp(2.5rem,6vw,5rem);letter-spacing:-.06em;line-height:1.02;margin:16px 0 24px;text-wrap:balance}
 h1 em{font-style:normal;color:var(--accent)}
 .lead{max-width:40rem;color:var(--muted);font-size:1.2rem;margin:0}
 .lead strong{color:var(--fg);font-weight:600}
@@ -94,26 +94,27 @@ footer .links{gap:18px}
 <div class="wrap">
 <nav aria-label="Main navigation">
   <a class="brand" href="#top"><img src="./assets/duality-mark.svg" alt="" width="28" height="28">DUALITY</a>
-  <div class="links"><a href="#work">Work</a><a href="#log">Log</a><a href="#notes">Notes</a><a href="#method">Method</a><a href="#about">About</a></div>
+  <div class="links"><a href="#work">Work</a><a href="#notes">Analysis</a><a href="#method">Method</a><a href="#about">Experience</a><a href="#log">Updates</a></div>
 </nav>
 
 <main id="top">
 <div class="hero">
-  <p class="eyebrow">Ian Kachadorian · Independent tools</p>
-  <h1>See the <em>signal.</em></h1>
-  <p class="lead">I build small tools that explain <strong>why the numbers moved</strong>: in a bank balance, a baseball season or a warehouse count. Six years in fund accounting and six in distribution and inventory control taught me the number is never the whole story.</p>
-  <div class="actions"><a class="btn primary" href="./variance/">Try Variance</a><a class="btn" href="#work">See all work</a></div>
+  <p class="eyebrow">Ian Kachadorian · Analyst portfolio</p>
+  <h1>Investigate the numbers.<br><em>Explain what to do next.</em></h1>
+  <p class="lead">I bring experience in <strong>inventory control and fund accounting</strong> to data analysis: investigating discrepancies, reconciling records and explaining what drives a result. I’m pursuing inventory, operations, financial and data analyst roles.</p>
+  <p class="lead" style="margin-top:16px">Start with <strong>Variance</strong>, a cycle-count investigation tool built from my inventory experience, with a working demo, a case study, and Python and SQL you can inspect.</p>
+  <div class="actions"><a class="btn primary" href="./variance/case-study.html">Read the Variance case study</a><a class="btn" href="./variance/">Try the demo</a><a class="btn" href="https://www.linkedin.com/in/iankachadorian/">Connect on LinkedIn ↗</a></div>
 </div>
 
 <section id="work" aria-labelledby="work-h">
   <p class="eyebrow">Work</p>
-  <h2 id="work-h">Four tools, one question.</h2>
-  <p class="sub">Each project asks what is driving a result, not just what the result was. Each card says what state the project is in.</p>
+  <h2 id="work-h">Analysis you can inspect.</h2>
+  <p class="sub">Start with inventory analysis in Variance, then explore cash-flow planning and my other projects. The case studies explain the methods, findings and limits.</p>
   <div class="cards">
     <article class="card">
       <img src="./assets/projects/variance.webp" alt="Variance: gross and net accuracy tiles, a Pareto chart of the largest variances, and likely causes ranked by dollars" width="1200" height="750">
       <div class="body">
-        <small>INVENTORY ANALYTICS</small>
+        <small>FEATURED PROJECT · INVENTORY ANALYTICS</small>
         <h3>Variance</h3>
         <p class="q">Why is the cycle count off?</p>
         <p>Upload a count and get gross and net accuracy, the lines driving 80% of the dollars, and the likely root cause of each variance, with a drafted audit write-up for anything over your threshold. Add last month's count to see what keeps coming back.</p>
@@ -139,8 +140,8 @@ footer .links{gap:18px}
       <div class="body">
         <small>SPORTS ANALYTICS</small>
         <h3>frame²</h3>
-        <p class="q">Did they earn that record, or get lucky?</p>
-        <p>Compares each Red Sox season's record with the wins its run differential was worth, scaled to 162 games, and tags it signal, overperformed or underperformed.</p>
+        <p class="q">How does the record compare with run differential?</p>
+        <p>Compares each Red Sox season's record with a win estimate from run differential, scaled to 162 games, and tags it signal, overperformed or underperformed.</p>
         <div class="meta"><span class="status live">Live timeline</span><span>2026 · Python, Streamlit · 220 tests</span></div>
         <a class="btn primary project-open" href="./frame2/">Open frame² ↗</a>
         <div class="go"><a href="./frame2/case-study.html">Case study</a><a href="https://github.com/dualityframework-ux/frame2_mvp">View code ↗</a></div>
@@ -160,49 +161,12 @@ footer .links{gap:18px}
   </div>
 </section>
 
-<section id="log" aria-labelledby="log-h">
-  <p class="eyebrow">Log</p>
-  <h2 id="log-h">Recently shipped.</h2>
-  <p class="sub">What changed, newest first. Each entry links to the thing itself.</p>
-  <ol class="log">
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>Explore seasons with the keyboard.</b> frame² season tiles open with Enter or Space and restore focus when details close. Filters keep keyboard focus while you type. <a href="./frame2/">Explore frame²</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>A starting point for the sample.</b> Variance now points first-time visitors to the largest differences in its synthetic count. <a href="./variance/">Explore Variance</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>Visible keyboard focus for uploads.</b> Variance now highlights the upload control when you reach it with the keyboard. <a href="./variance/">Open Variance</a></div></li>
-  </ol>
-  <details class="log-history">
-    <summary><span class="show-older">Show older updates</span><span class="hide-older">Hide older updates</span></summary>
-    <ol class="log" start="4">
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>Jump to the part you need.</b> The Variance case study has a short section menu for its problem, approach, results and limits. <a href="./variance/case-study.html">Read the case study</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>A clearer starting point for each tool.</b> Live projects now have an Open button, with case studies and code underneath. <a href="#work">Explore projects</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>Easier navigation on phones.</b> The menu has roomier tap areas, and a footer link returns to the top. <a href="#top">Back to top</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>Project links are easier to use.</b> Clearer names and larger tap areas make each tool easier to open on a phone. <a href="#work">Explore projects</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>A shorter updates list.</b> The latest three updates stay visible, with older entries one tap away. <a href="#log">Browse updates</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>New note: Variance in SQL.</b> The Pareto, mislocated pairs and repeat variances as plain SQLite, with real results. 9 of 28 lines carry 80% of the gross. <a href="./notes/variance-sql.html">Read it</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>New note: ABC value classes.</b> On the sample count, C items are under 5% of value but the least accurate, and one expensive item with little stock plus two unit-of-measure errors explain 96% of it. <a href="./notes/abc-classes.html">Read it</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>frame² FIP is now computed from MLB data.</b> MLB doesn't publish team FIP, so the 58 values had no source. I now compute each season from MLB's own counts with the standard formula. Only 10 of the old values were within 0.05, so all 58 were replaced, with every input recorded. <a href="./frame2/case-study.html">Read how</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>Variance shows accuracy by value class.</b> SKUs are split into A, B and C by book value, with gross accuracy for each. On the sample, A items are 82% of value and 85% of gross variance, and C items are the least accurate at 87.99%. Also in Python. <a href="./variance/">Try it</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>Variance is easier to start.</b> Upload CSV is now the main button, the page says when you're looking at the sample, and on a phone the column-matching step appears right under the upload instead of off-screen. <a href="./variance/">Try it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance compares counts.</b> Load last month's count of the same locations to see accuracy change, causes then and now, and every line that is off again. On the sample, 9 repeat lines are 40% of the gross. Also in Python and SQL. <a href="./variance/">Try it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>First note: gross vs. net accuracy.</b> Why a count can read 99% while $11,562 of stock is in the wrong place, worked through with Variance's numbers. <a href="./notes/gross-vs-net.html">Read it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² uses one rule for every tag.</b> Signal, overperformed and underperformed now all come from expected wins, so the timeline and the luck table can't disagree. <a href="./frame2/">Open it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Every project is now tested.</b> Runway gained 17 tests and frame²mental 34; writing them turned up a tone setting that produced broken sentences, now fixed. <a href="https://github.com/dualityframework-ux/frame2mental">See the code</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Link previews everywhere.</b> Every shareable page now shows a proper card on LinkedIn and in texts.</div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance checks causes against transaction history.</b> Load moves, receipts and picks, and each diagnosis carries matching-transfer or supporting evidence, with the evidence in the write-up. Also in <a href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance/python">Python and SQL</a>. <a href="./variance/">Try it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance detection is tunable.</b> Match tolerances, minimum quantities and pack sizes can be set per building. <a href="./variance/">Try it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Runway imports bank statements.</b> CSV import with column detection, merchant categories that learn from corrections, and duplicate skipping. <a href="https://dualityframework-ux.github.io/Runway/#spend">Try it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Runway handles promo rates and irregular bills.</b> 0% cards switch rates on schedule with a warning about what's left; bills can be quarterly, yearly or one-time. <a href="https://dualityframework-ux.github.io/Runway/#debt">Try it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² measures luck.</b> Expected wins from run differential, scaled to 162 games; 1985 was the unluckiest season. <a href="./frame2/case-study.html">Read it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² timeline is live, with a data fix.</b> The Red Sox made 7 World Series and won 4, not 6; corrected everywhere with a test behind it. <a href="./frame2/">Open it</a></div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Case studies for all three projects.</b> Problem, approach, result and limits for <a href="./variance/case-study.html">Variance</a>, <a href="https://dualityframework-ux.github.io/Runway/case-study.html">Runway</a> and <a href="./frame2/case-study.html">frame²</a>.</div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance launched.</b> Cycle count accuracy, a Pareto of the dollars, root causes for every line, drafted write-ups and a recount sheet in walking order. <a href="./variance/">Try it</a></div></li>
-    </ol>
-  </details>
-</section>
+
 
 <section id="notes" aria-labelledby="notes-h">
-  <p class="eyebrow">Notes</p>
-  <h2 id="notes-h">Short write-ups.</h2>
-  <p class="sub">Inventory and finance ideas, explained with real numbers from the tools.</p>
+  <p class="eyebrow">Analysis</p>
+  <h2 id="notes-h">Inspect the reasoning.</h2>
+  <p class="sub">Worked inventory analyses using Variance’s synthetic sample. Follow the SQL, see how value classes change the priorities, and compare gross with net accuracy.</p>
   <ol class="log">
     <li><time datetime="2026-11-01">Nov 1</time><div><b><a href="./notes/variance-sql.html">Three SQL queries that explain a cycle count</a></b> A window function, a self-join and a join across two counts, with real results. 4 min read.</div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b><a href="./notes/abc-classes.html">The lowest-value 5% of stock was the least accurate</a></b> ABC classes show where the dollars are, and where cheap setup mistakes hide. 3 min read.</div></li>
@@ -219,11 +183,11 @@ footer .links{gap:18px}
     <li><h3>Mechanism</h3><p>Find the driver underneath it, and separate it from noise.</p></li>
     <li><h3>Implication</h3><p>Say what it means for the next decision.</p></li>
   </ol>
-  <div class="example"><p><b>Observation:</b> the 2024 Red Sox finished 81–81. <b>Mechanism:</b> run differential was neutral, so the record matched the process. <b>Implication:</b> an average team got an average result; nothing to chase or excuse.</p></div>
+  <div class="example"><p><b>Observation:</b> the 2024 Red Sox finished 81–81. <b>Mechanism:</b> run differential was close to zero, and win pace was close to the estimate. <b>Implication:</b> this comparison alone does not establish a cause or a roster decision.</p></div>
 </section>
 
 <section id="about" aria-labelledby="about-h">
-  <p class="eyebrow">About</p>
+  <p class="eyebrow">Experience</p>
   <h2 id="about-h">Built by someone who reconciles for a living.</h2>
   <p class="sub">I'm Ian Kachadorian. I've spent my career making numbers agree and explaining when they don't. Duality is where I turn that habit into tools.</p>
   <div class="facts">
@@ -231,6 +195,49 @@ footer .links{gap:18px}
     <div class="fact"><div class="n">250<span>K+</span></div><h3>Inventory control</h3><p>Supervised 10 cycle counters over 250,000+ locations per trimester at 97.5% gross and 99% net accuracy.</p></div>
     <div class="fact"><div class="n">58</div><h3>Sports modeling</h3><p>Built predictive models of NCAA basketball teams and players in Python and R, and a 58-season Red Sox history checked against MLB data.</p></div>
   </div>
+</section>
+<section id="log" aria-labelledby="log-h">
+  <p class="eyebrow">Log</p>
+  <h2 id="log-h">Recently shipped.</h2>
+  <p class="sub">What changed, newest first. Each entry links to the thing itself.</p>
+  <ol class="log">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Analysis and experience first.</b> Worked examples and professional background now appear before the update history. <a href="#notes">Inspect the analysis</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>A win gap is not proof of luck.</b> frame² now distinguishes its estimate from causal and predictive claims. <a href="./frame2/case-study.html#limits">Read the limits</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Testing misleading inventory patterns.</b> New synthetic challenges expose false-positive causes and check the boundaries of transaction evidence. <a href="./variance/case-study.html#result">Read the findings</a></div></li>
+  </ol>
+  <details class="log-history">
+    <summary><span class="show-older">Show older updates</span><span class="hide-older">Hide older updates</span></summary>
+    <ol class="log" start="4">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Explore seasons with the keyboard.</b> frame² season tiles open with Enter or Space and restore focus when details close. Filters keep keyboard focus while you type. <a href="./frame2/">Explore frame²</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>From finding to decision.</b> The Variance case study now leads with the investigation priorities, recommended actions and limits of its synthetic evidence. <a href="./variance/case-study.html#decision-summary">Read the summary</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>A clearer introduction.</b> My analyst focus, relevant experience and featured inventory case study are now at the top. <a href="#top">Read the introduction</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>A starting point for the sample.</b> Variance now points first-time visitors to the largest differences in its synthetic count. <a href="./variance/">Explore Variance</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Visible keyboard focus for uploads.</b> Variance now highlights the upload control when you reach it with the keyboard. <a href="./variance/">Open Variance</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Jump to the part you need.</b> The Variance case study has a short section menu for its problem, approach, results and limits. <a href="./variance/case-study.html">Read the case study</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>A clearer starting point for each tool.</b> Live projects now have an Open button, with case studies and code underneath. <a href="#work">Explore projects</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Easier navigation on phones.</b> The menu has roomier tap areas, and a footer link returns to the top. <a href="#top">Back to top</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Project links are easier to use.</b> Clearer names and larger tap areas make each tool easier to open on a phone. <a href="#work">Explore projects</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>A shorter updates list.</b> The latest three updates stay visible, with older entries one tap away. <a href="#log">Browse updates</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>New note: Variance in SQL.</b> The Pareto, mislocated pairs and repeat variances as plain SQLite, with real results. 9 of 28 lines carry 80% of the gross. <a href="./notes/variance-sql.html">Read it</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>New note: ABC value classes.</b> On the sample count, C items are under 5% of value but the least accurate, and one expensive item with little stock plus two unit-of-measure errors explain 96% of it. <a href="./notes/abc-classes.html">Read it</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>frame² FIP is now computed from MLB data.</b> MLB doesn't publish team FIP, so the 58 values had no source. I now compute each season from MLB's own counts with the standard formula. Only 10 of the old values were within 0.05, so all 58 were replaced, with every input recorded. <a href="./frame2/case-study.html">Read how</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Variance shows accuracy by value class.</b> SKUs are split into A, B and C by book value, with gross accuracy for each. On the sample, A items are 82% of value and 85% of gross variance, and C items are the least accurate at 87.99%. Also in Python. <a href="./variance/">Try it</a></div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Variance is easier to start.</b> Upload CSV is now the main button, the page says when you're looking at the sample, and on a phone the column-matching step appears right under the upload instead of off-screen. <a href="./variance/">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance compares counts.</b> Load last month's count of the same locations to see accuracy change, causes then and now, and every line that is off again. On the sample, 9 repeat lines are 40% of the gross. Also in Python and SQL. <a href="./variance/">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>First note: gross vs. net accuracy.</b> Why a count can read 99% while $11,562 of stock is in the wrong place, worked through with Variance's numbers. <a href="./notes/gross-vs-net.html">Read it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² uses one rule for every tag.</b> Signal, overperformed and underperformed now all come from expected wins, so the timeline and the win-gap table can't disagree. <a href="./frame2/">Open it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Every project is now tested.</b> Runway gained 17 tests and frame²mental 34; writing them turned up a tone setting that produced broken sentences, now fixed. <a href="https://github.com/dualityframework-ux/frame2mental">See the code</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Link previews everywhere.</b> Every shareable page now shows a proper card on LinkedIn and in texts.</div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance checks causes against transaction history.</b> Load moves, receipts and picks, and each diagnosis carries matching-transfer or supporting evidence, with the evidence in the write-up. Also in <a href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance/python">Python and SQL</a>. <a href="./variance/">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance detection is tunable.</b> Match tolerances, minimum quantities and pack sizes can be set per building. <a href="./variance/">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Runway imports bank statements.</b> CSV import with column detection, merchant categories that learn from corrections, and duplicate skipping. <a href="https://dualityframework-ux.github.io/Runway/#spend">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Runway handles promo rates and irregular bills.</b> 0% cards switch rates on schedule with a warning about what's left; bills can be quarterly, yearly or one-time. <a href="https://dualityframework-ux.github.io/Runway/#debt">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² compares wins with an estimate.</b> Expected wins from run differential, scaled to 162 games; 1985 had the largest negative gap under this formula. <a href="./frame2/case-study.html">Read it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² timeline is live, with a data fix.</b> The Red Sox made 7 World Series and won 4, not 6; corrected everywhere with a test behind it. <a href="./frame2/">Open it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Case studies for all three projects.</b> Problem, approach, result and limits for <a href="./variance/case-study.html">Variance</a>, <a href="https://dualityframework-ux.github.io/Runway/case-study.html">Runway</a> and <a href="./frame2/case-study.html">frame²</a>.</div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance launched.</b> Cycle count accuracy, a Pareto of the dollars, root causes for every line, drafted write-ups and a recount sheet in walking order. <a href="./variance/">Try it</a></div></li>
+    </ol>
+  </details>
 </section>
 </main>
 
