@@ -53,7 +53,7 @@ See [`example_report.md`](example_report.md) for the output on the sample count,
 ## How the pandas version is organized
 
 - `load_count` reads the CSV and matches common header names (`Bin`, `On Hand`, `Physical Qty`, `Std Cost`…) to standard columns.
-- `analyze` runs the checks in the same order as the browser tool (mislocated, UOM, transposed, swap, timing, empty, found, counter) and returns metrics, the Pareto, causes and counter rates.
+- `analyze` runs the checks in the same order as the browser tool (mislocated, UOM, transposed, swap, timing, empty, found, counter) and returns metrics, the Pareto, causes, counter rates and ABC value classes (`abc_classes`, same rule as the browser tool).
 - `explain` drafts each write-up as observation → mechanism → implication; `report` assembles the markdown.
 
 The sample count is synthetic. No employer data was used.

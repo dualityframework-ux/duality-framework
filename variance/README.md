@@ -10,6 +10,8 @@ Variance takes a cycle count export and answers the three questions an inventory
 
 4. **What keeps coming back?** Load an earlier count of the same locations to see the change in accuracy, the change by cause, and every line that is off in both counts. A repeat points to a process problem, not a counting one.
 
+5. **Is accuracy following the dollars?** SKUs are split into A, B and C classes by book value (A is the first 80% of value, B the next 15%, C the rest), with gross accuracy for each class. A full ABC study ranks by annual usage value; a count file doesn't include usage, so book value stands in.
+
 It also builds a **recount sheet** in walking order (aisles in sequence, alternating direction, pairs kept together) with a blind-count option, ready to print or download.
 
 Everything runs in the browser. The file is never uploaded.
@@ -52,6 +54,7 @@ A CSV with one row per counted location. Required: SKU, location, system quantit
 - **Gross accuracy** = 1 − Σ|variance $| ÷ book value
 - **Net accuracy** = 1 − |Σ variance $| ÷ book value
 - **Location accuracy** = locations with no variance ÷ locations counted
+- **Accuracy by class** = the gross accuracy formula, using only that class's book value and variance
 
 ## Python and SQL
 

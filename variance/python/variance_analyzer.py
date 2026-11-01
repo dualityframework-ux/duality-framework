@@ -121,6 +121,30 @@ class Result:
     flagged_counters: list = field(default_factory=list)
     threshold: float = 1000
     evidence: dict | None = None
+    abc: list = field(default_factory=list)  # one dict per value class, A then B then C
+
+
+ABC_CUTS = {"A": 0.8, "B": 0.95}
+
+
+def abc_classes(lines: pd.DataFrame) -> dict:
+    """Class each SKU by book value, the same rule as the JS engine.
+
+    A is the SKUs that make up the first 80% of value, B the next 15%, C the rest. A SKU is classed by
+    where its value starts, so the SKU that crosses 80% is still an A. Ties break by SKU.
+    """
+    value: dict = {}
+    for sku, v in zip(lines["sku"], lines["book_value"]):
+        value[sku] = value.get(sku, 0) + v
+    total = 0
+    for v in value.values():
+        total += v
+    out, run = {}, 0
+    for sku in sorted(value, key=lambda k: (-value[k], k)):
+        start = run / total if total else 1
+        out[sku] = "A" if start < ABC_CUTS["A"] else "B" if start < ABC_CUTS["B"] else "C"
+        run += value[sku]
+    return out
 
 
 def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3, **settings) -> Result:
@@ -242,10 +266,22 @@ def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3, **s
     var["cum_share"] = var["abs_dollars"].cumsum() / gross if gross else 0.0
     for80 = int((var["cum_share"] < 0.8 - 1e-12).sum() + 1) if len(var) else 0
 
+    classes = abc_classes(lines)
+    lines["abc"] = lines["sku"].map(classes)
+    var["abc"] = var["sku"].map(classes)
+    abc = []
+    for k in ("A", "B", "C"):
+        ls = lines[lines["abc"] == k]
+        vs = ls[ls["qty"] != 0]
+        b, g = ls["book_value"].sum(), vs["dollars"].abs().sum()
+        abc.append({"cls": k, "skus": int(ls["sku"].nunique()), "lines": len(ls), "varianceLines": len(vs),
+                    "bookValue": b, "bookShare": b / book if book else 0, "gross": g, "grossShare": g / gross if gross else 0,
+                    "grossAccuracy": 1 - g / b if b else None, "locationAccuracy": 1 - len(vs) / len(ls) if len(ls) else None})
+
     by_pattern = (var.groupby("pattern").agg(count=("qty", "size"), gross=("abs_dollars", "sum"), net=("dollars", "sum"))
                   .reindex([p for p in ORDER if p in set(var["pattern"])]).reset_index())
     by_pattern["name"] = by_pattern["pattern"].map(lambda k: PATTERNS[k][0])
-    return Result(lines, var, summary, by_pattern, for80, counters.sort_values("rate", ascending=False), flagged, threshold)
+    return Result(lines, var, summary, by_pattern, for80, counters.sort_values("rate", ascending=False), flagged, threshold, abc=abc)
 
 
 # ---------------------------------------------------------------- transaction history evidence
@@ -451,6 +487,13 @@ def report(r: Result) -> str:
            "## Likely causes", "", "| Cause | Lines | Gross $ | Share |", "| --- | ---: | ---: | ---: |"]
     for _, p in r.by_pattern.iterrows():
         out.append(f"| {p['name']} | {p['count']} | {_money(p['gross'])} | {p['gross'] / s['gross']:.0%} |")
+    out += ["", "## Accuracy by value class", "",
+            "SKUs ranked by book value in this count: A is the first 80% of value, B the next 15%, C the rest.", "",
+            "| Class | SKUs | Locations | Share of book | Lines off | Gross $ | Gross accuracy |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
+    for c in r.abc:
+        acc = f"{c['grossAccuracy']:.2%}" if c["grossAccuracy"] is not None else "—"
+        out.append(f"| {c['cls']} | {c['skus']} | {c['lines']:,} | {c['bookShare']:.0%} | {c['varianceLines']} | {_money(c['gross'])} | {acc} |")
     flagged = r.variances[r.variances["abs_dollars"] >= r.threshold]
     out += ["", f"## Needs a written root cause (≥ {_money(r.threshold)})", ""]
     if flagged.empty:

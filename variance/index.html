@@ -311,6 +311,8 @@ function render(){
     </section>
   </div>
 
+  ${abcSection(r)}
+
   ${cmp ? compareSection(cmp) : ""}
 
   <section class="sheet" aria-labelledby="f-h">
@@ -355,9 +357,23 @@ function copy(text){
 }
 function fallback(text){ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand("copy"); toast("Copied");}catch(e){toast("Select the text and copy it");} t.remove(); }
 
+function abcSection(r){
+  const s = r.summary, live = r.abc.filter(c => c.lines), a = r.abc[0];
+  const worst = live.filter(c => c.grossAccuracy != null).sort((x, y) => x.grossAccuracy - y.grossAccuracy)[0];
+  const share = n => (n*100).toFixed(0) + "%";
+  const span = { A: "top 80%", B: "next 15%", C: "last 5%" };
+  return `<section class="sheet" aria-labelledby="abc-h">
+    <h2 id="abc-h">Accuracy by value class</h2>
+    <p class="sub"><b>A items are ${share(a.bookShare)} of book value and ${share(a.grossShare)} of gross variance.</b>${worst && live.length > 1 ? ` Gross accuracy is lowest for ${worst.cls} items, at ${pct(worst.grossAccuracy)}.` : ""} Most teams count A items most often, so check whether accuracy follows the dollars.</p>
+    <div class="scroll"><table><thead><tr><th>Class</th><th class="r">Share of book</th><th class="r">Gross accuracy</th><th class="r">Gross variance</th><th class="r">Lines off</th><th class="r">SKUs</th><th class="r">Locations</th></tr></thead><tbody>
+    ${r.abc.map(c => `<tr><td style="white-space:nowrap"><b>${c.cls}</b> <span class="note">${span[c.cls]}</span></td><td class="r">${share(c.bookShare)}</td><td class="r">${pct(c.grossAccuracy)}</td><td class="r">${money(c.gross)}</td><td class="r">${c.varianceLines}</td><td class="r">${c.skus}</td><td class="r">${c.lines.toLocaleString()}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="note">SKUs are ranked by book value in this count (system quantity × unit cost). A full ABC study ranks by annual usage value, which a count file doesn't include.</p>
+  </section>`;
+}
 function exportCSV(){
-  const rows = [["location","sku","description","system_qty","counted_qty","variance_units","unit_cost","variance_dollars","likely_cause","paired_with","counter","explanation"]];
-  result.variances.forEach(v => rows.push([v.location,v.sku,v.description,v.system,v.counted,v.qty,v.cost,v.dollars.toFixed(2),E.PATTERNS[v.pattern].name,v.partner||"",v.counter,E.explain(v).text.replace(/\n/g," ")]));
+  const rows = [["location","sku","description","system_qty","counted_qty","variance_units","unit_cost","variance_dollars","value_class","likely_cause","paired_with","counter","explanation"]];
+  result.variances.forEach(v => rows.push([v.location,v.sku,v.description,v.system,v.counted,v.qty,v.cost,v.dollars.toFixed(2),v.abc,E.PATTERNS[v.pattern].name,v.partner||"",v.counter,E.explain(v).text.replace(/\n/g," ")]));
   download(E.toCSV(rows), "variance-results.csv");
 }
 function download(text, name){

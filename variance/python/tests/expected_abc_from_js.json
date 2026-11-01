@@ -1,0 +1,70 @@
+{
+ "source": "node: E.analyze(sample_count.csv, {threshold:1000, recentDays:3})",
+ "classes": {
+  "BAT-5100": "A",
+  "WIP-6020": "C",
+  "HOS-8500": "B",
+  "ALT-2400": "A",
+  "SPK-7001": "B",
+  "FUS-6010": "C",
+  "LMP-9005": "B",
+  "SPK-7002": "C",
+  "BLT-8120": "B",
+  "SEN-3200": "A",
+  "TPE-7100": "C",
+  "BRK-4410": "A",
+  "LMP-9006": "B",
+  "FLT-2210": "B",
+  "FLD-1100": "B",
+  "PMP-4100": "A",
+  "FLT-1043": "C",
+  "BRK-3301": "A",
+  "SEN-3100": "A",
+  "BAT-5101": "A",
+  "CLP-5005": "C",
+  "BRK-3302": "A",
+  "WIP-6022": "C",
+  "FLT-1042": "C",
+  "WSH-8800": "C",
+  "FLD-1200": "C",
+  "STR-2500": "C"
+ },
+ "abc": [
+  {
+   "cls": "A",
+   "skus": 9,
+   "lines": 55,
+   "varianceLines": 11,
+   "bookValue": 167406.15,
+   "bookShare": 0.8220212583386798,
+   "gross": 9771.4,
+   "grossShare": 0.845112326753011,
+   "grossAccuracy": 0.9416305792827803,
+   "locationAccuracy": 0.8
+  },
+  {
+   "cls": "B",
+   "skus": 7,
+   "lines": 57,
+   "varianceLines": 9,
+   "bookValue": 26148.19999999999,
+   "bookShare": 0.12839657484083744,
+   "gross": 577.8000000000002,
+   "grossShare": 0.04997297238859221,
+   "grossAccuracy": 0.9779028766798479,
+   "locationAccuracy": 0.8421052631578947
+  },
+  {
+   "cls": "C",
+   "skus": 11,
+   "lines": 52,
+   "varianceLines": 8,
+   "bookValue": 10097.499999999998,
+   "bookShare": 0.0495821668204831,
+   "gross": 1213.05,
+   "grossShare": 0.10491470085839695,
+   "grossAccuracy": 0.8798663035404803,
+   "locationAccuracy": 0.8461538461538461
+  }
+ ]
+}

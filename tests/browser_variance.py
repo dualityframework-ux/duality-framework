@@ -31,6 +31,12 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory() as directory
     page.keyboard.press('Enter')
     expect(page.locator('#msg')).to_contain_text('164')
 
+    # ABC value classes: three rows, A first, with its share of book value stated.
+    abc = page.locator('section[aria-labelledby="abc-h"]')
+    expect(abc.get_by_role('heading', name='Accuracy by value class')).to_be_visible()
+    expect(abc.locator('tbody tr')).to_have_count(3)
+    expect(abc).to_contain_text('A items are 82% of book value')
+
     # Exercise actual FileReader uploads, using only synthetic fixtures.
     page.locator('#file').set_input_files(FIXTURES / 'sample_count.csv')
     expect(page.locator('#msg')).to_contain_text('164')
@@ -59,7 +65,8 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory() as directory
     download.value.save_as(output)
     results = list(csv.DictReader(io.StringIO(output.read_text())))
     assert len(results) == 28
-    assert {'likely_cause', 'explanation'} <= set(results[0])
+    assert {'likely_cause', 'explanation', 'value_class'} <= set(results[0])
+    assert {r['value_class'] for r in results} <= {'A', 'B', 'C'}
 
     with page.expect_download() as download:
         page.locator('#dlRc').click()
