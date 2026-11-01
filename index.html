@@ -61,6 +61,13 @@ h2{font-size:clamp(1.9rem,4vw,2.8rem);letter-spacing:-.035em;line-height:1.1;mar
 .steps p{margin:0;color:var(--muted)}
 .example{margin-top:28px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;max-width:46rem}
 .example p{margin:0;color:var(--muted)}.example b{color:var(--fg)}
+.log{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-direction:column;max-width:46rem}
+.log li{display:grid;grid-template-columns:4.5rem 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--line)}
+.log li:first-child{border-top:0}
+.log time{color:var(--accent);font-size:.82rem;font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums;padding-top:2px}
+.log div{color:var(--muted);min-width:0}
+.log b{color:var(--fg);font-weight:600}
+.log a{color:var(--fg);text-decoration:underline;text-underline-offset:3px}
 .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:32px}
 .fact{border:1px solid var(--line);border-radius:14px;padding:20px}
 .fact .n{font-size:1.9rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
@@ -78,7 +85,7 @@ footer .links{gap:18px}
 <div class="wrap">
 <nav aria-label="Main navigation">
   <a class="brand" href="#top"><img src="./assets/duality-mark.svg" alt="" width="28" height="28">DUALITY</a>
-  <div class="links"><a href="#work">Work</a><a href="#method">Method</a><a href="#about">About</a></div>
+  <div class="links"><a href="#work">Work</a><a href="#log">Log</a><a href="#method">Method</a><a href="#about">About</a></div>
 </nav>
 
 <main id="top">
@@ -139,6 +146,22 @@ footer .links{gap:18px}
       </div>
     </article>
   </div>
+</section>
+
+<section id="log" aria-labelledby="log-h">
+  <p class="eyebrow">Log</p>
+  <h2 id="log-h">Recently shipped.</h2>
+  <p class="sub">What changed, newest first. Each entry links to the thing itself.</p>
+  <ol class="log">
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance confirms causes with transaction history.</b> Load moves, receipts and picks, and each diagnosis is marked confirmed or supported, with the evidence in the write-up. Also in <a href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance/python">Python and SQL</a>. <a href="./variance/">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance detection is tunable.</b> Match tolerances, minimum quantities and pack sizes can be set per building. <a href="./variance/">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Runway imports bank statements.</b> CSV import with column detection, merchant categories that learn from corrections, and duplicate skipping. <a href="https://dualityframework-ux.github.io/Runway/#spend">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Runway handles promo rates and irregular bills.</b> 0% cards switch rates on schedule with a warning about what's left; bills can be quarterly, yearly or one-time. <a href="https://dualityframework-ux.github.io/Runway/#debt">Try it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² measures luck.</b> Expected wins from run differential, scaled to 162 games; 1985 was the unluckiest season. <a href="./frame2/case-study.html">Read it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² timeline is live, with a data fix.</b> The Red Sox made 7 World Series and won 4, not 6; corrected everywhere with a test behind it. <a href="./frame2/">Open it</a></div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Case studies for all three projects.</b> Problem, approach, result and limits for <a href="./variance/case-study.html">Variance</a>, <a href="https://dualityframework-ux.github.io/Runway/case-study.html">Runway</a> and <a href="./frame2/case-study.html">frame²</a>.</div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance launched.</b> Cycle count accuracy, a Pareto of the dollars, root causes for every line, drafted write-ups and a recount sheet in walking order. <a href="./variance/">Try it</a></div></li>
+  </ol>
 </section>
 
 <section id="method" aria-labelledby="method-h">
