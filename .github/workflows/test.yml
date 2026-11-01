@@ -33,9 +33,9 @@ jobs:
           python-version: "3.11"
       - run: pip install playwright
       - name: WCAG AA contrast, light and dark
-        run: python tests/check_contrast.py index.html changelog.html variance/index.html variance/case-study.html frame2/index.html frame2/case-study.html notes/gross-vs-net.html notes/abc-classes.html notes/variance-sql.html
+        run: python tests/check_contrast.py index.html changelog.html variance/index.html variance/case-study.html variance/one-pager.html frame2/index.html frame2/case-study.html notes/gross-vs-net.html notes/abc-classes.html notes/variance-sql.html
       - name: No sideways scroll at phone widths
-        run: python tests/check_phone_width.py index.html changelog.html variance/index.html variance/case-study.html frame2/index.html frame2/case-study.html notes/gross-vs-net.html notes/abc-classes.html notes/variance-sql.html
+        run: python tests/check_phone_width.py index.html changelog.html variance/index.html variance/case-study.html variance/one-pager.html frame2/index.html frame2/case-study.html notes/gross-vs-net.html notes/abc-classes.html notes/variance-sql.html
 
   browser:
     runs-on: ubuntu-latest
@@ -50,3 +50,4 @@ jobs:
       - run: python tests/browser_home.py
       - run: python tests/browser_case_study.py
       - run: python tests/browser_frame2.py
+      - run: python tests/browser_one_pager.py

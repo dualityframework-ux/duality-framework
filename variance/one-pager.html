@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Variance one-page summary — Ian Kachadorian</title>
+<meta name="description" content="A one-page summary of Variance, a cycle-count investigation tool: the finding, the method, the result on a synthetic count and the limits. Prints to one page.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Variance one-page summary — Ian Kachadorian">
+<meta property="og:description" content="A 99% count can still hide $11,562 of variance. The finding, method, result and limits on one printable page.">
+<meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/variance/preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23facc15'/%3E%3Cpath d='M18 18l14 30 14-30' fill='none' stroke='%231c1917' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,800;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* A one-page memo: same palette as the case study, sized to print on one Letter or A4 page */
+:root{
+  --bg:#f5f4f0; --sheet:#ffffff; --ink:#1c1917; --muted:#5f5a52; --rule:#dedad2;
+  --accent:#c2410c; --accent-soft:#fbe9df;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141210; --sheet:#1c1a17; --ink:#ede9e2; --muted:#a8a196; --rule:#34302a;
+  --accent:#fb923c; --accent-soft:#3a2416; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;font:16px/1.55 var(--f-body)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:46rem;margin:0 auto;padding:24px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+.top a{color:var(--ink)}
+button{font:inherit;font-size:.85rem;font-weight:600;color:var(--ink);background:var(--sheet);border:1px solid var(--muted);border-radius:8px;padding:8px 14px;min-height:44px;cursor:pointer}
+.kicker{margin:22px 0 4px;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(1.5rem,4.5vw,2rem);line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+.by{margin:0 0 16px;font-size:.88rem;color:var(--muted)}
+h2{font-size:.8rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
+p{margin:0 0 8px}
+ul,ol{margin:0 0 8px;padding-left:1.2em}li{margin:2px 0}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:4px 0 6px}
+.stat{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:8px 10px}
+.stat .v{font:600 1.15rem/1.2 var(--f-num)}
+.stat .k{font-size:.75rem;line-height:1.35;color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.num{font-family:var(--f-num);font-size:.92em}
+.draft{background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px}
+.links{margin-top:14px;padding-top:10px;border-top:1px solid var(--rule);font-size:.82rem;color:var(--muted)}
+.links span{display:block}
+@media (max-width:620px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:1fr}}
+@page{size:letter;margin:.5in}
+@media print{
+  :root{--bg:#fff;--sheet:#fff;--ink:#000;--muted:#3f3a34;--rule:#bbb;--accent:#9a3412;color-scheme:light}
+  body{font-size:10.5pt;line-height:1.42}
+  .wrap{max-width:none;padding:0}
+  .noprint{display:none}
+  .kicker{margin-top:0}
+  h1{font-size:19pt}
+  h2{margin-top:10px}
+  .stat{padding:6px 8px}.stat .v{font-size:13pt}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top noprint"><a href="./case-study.html">← Full case study</a><button type="button" onclick="window.print()">Print or save as PDF</button></div>
+
+  <p class="kicker">Variance · one-page summary</p>
+  <h1>A 99% count can still hide $11,562 of variance</h1>
+  <p class="by">Ian Kachadorian · inventory control and fund accounting, moving into analyst roles</p>
+
+  <div class="stats" role="list">
+    <div class="stat" role="listitem"><div class="v">99.01%</div><div class="k">Net accuracy on the sample</div></div>
+    <div class="stat" role="listitem"><div class="v">94.32%</div><div class="k">Gross accuracy on the same count</div></div>
+    <div class="stat" role="listitem"><div class="v">$11,562</div><div class="k">Gross variance behind a $2,006 net</div></div>
+    <div class="stat" role="listitem"><div class="v">9 of 28</div><div class="k">Variance lines carrying 80% of gross dollars</div></div>
+  </div>
+
+  <h2>The problem</h2>
+  <p>Part of my job in a distribution center is researching inventory discrepancies. Most of that time is recognizing patterns I have seen hundreds of times: the same part short in one slot and over in the next, a box of 12 counted as one, 64 keyed as 46. A tool should catch those first, so a person's time goes to the variances that do not fit a pattern.</p>
+
+  <div class="cols">
+    <div>
+      <h2>What I built</h2>
+      <ol>
+        <li><b>Measure both ways.</b> Gross accuracy counts every dollar; net lets overs and shorts cancel.</li>
+        <li><b>Prioritize by dollars.</b> A Pareto ranking shows which few lines carry most of the gross.</li>
+        <li><b>Classify the likely cause.</b> Eight causes in a deliberate order, mislocated pairs first, so one move is not written up as two problems.</li>
+        <li><b>Draft the write-up:</b> observation, mechanism, implication, ready to verify.</li>
+      </ol>
+    </div>
+    <div>
+      <h2>The result</h2>
+      <ul>
+        <li>On a synthetic count of 164 lines with 14 problems planted in it, all 14 were classified correctly. A test checks this on every change.</li>
+        <li>It also found a pair I did not plant: a serpentine belt over 3 in one aisle and short 3 in another.</li>
+        <li>The same figures come from JavaScript in the browser, a pandas port and SQL queries, and tests check that they agree.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>A drafted write-up, as Variance produces it</h2>
+  <p class="draft"><b>Observation.</b> BAT-5100 (Battery, group 24F) at C-14-02: system 18, counted 6, a variance of <span class="num">−12</span> units <span class="num" style="white-space:nowrap">(−$1,704.00)</span>. <b>Mechanism.</b> The same item is short in one location and over by about the same amount in another, which points to a put-away or replenishment move that went to the wrong slot. The offsetting variance is at C-15-04. <b>Implication.</b> Recount both locations and review the movement history. If the mislocation is confirmed, correct the locations through the appropriate transfer process and review the put-away that touched both slots.</p>
+
+  <h2>The decision</h2>
+  <p>Investigate the largest dollar differences first. Recount the affected locations and review movement records before accepting a suggested cause or posting an adjustment.</p>
+
+  <h2>The limits</h2>
+  <p>These are rules, not a model, and the tolerances are judgment calls. Evidence depends on what the export includes. It has only seen synthetic data; no employer data was used to build or test it.</p>
+
+  <p class="links">
+    <span>Try it: <a href="https://dualityframework-ux.github.io/duality-framework/variance/">dualityframework-ux.github.io/duality-framework/variance/</a></span>
+    <span>Full case study and SQL: <a href="https://dualityframework-ux.github.io/duality-framework/variance/case-study.html">dualityframework-ux.github.io/duality-framework/variance/case-study.html</a></span>
+  </p>
+</div>
+</body>
+</html>
