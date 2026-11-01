@@ -50,6 +50,7 @@ button.tiny{padding:4px 10px;font-size:.8rem}
 button:disabled{opacity:.5;cursor:default}
 label.btn{display:inline-block}
 input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+input[type=file]:focus-visible + label.btn{outline:2px solid var(--accent);outline-offset:2px}
 .field{display:flex;flex-direction:column;gap:4px}
 .field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 input[type=number],select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--rule-2);border-radius:7px;padding:8px 10px;min-width:0}
@@ -141,7 +142,7 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
     <h2 id="in-h">Load a cycle count</h2>
     <p class="sub">One row per counted location: SKU, location, system quantity, counted quantity and unit cost. Counter, count date and last movement date make the root causes sharper. Your file never leaves this browser.</p>
     <div class="bar">
-      <label class="btn" for="file">Upload CSV</label><input id="file" type="file" accept=".csv,text/csv">
+      <input id="file" type="file" accept=".csv,text/csv"><label class="btn" for="file">Upload CSV</label>
       <button class="ghost" id="pasteBtn">Paste CSV</button>
       <button class="ghost" id="sample">Load sample count</button>
       <button class="ghost" id="sampleDl">Download sample CSV</button>
@@ -155,10 +156,10 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
     <div id="mapBox" hidden></div>
     <div id="msg" class="note" role="status"></div>
     <div class="bar hist"><span class="note"><b>Transaction history</b> (optional): moves, receipts and picks, to check the evidence for each cause.</span>
-      <label class="btn ghost tiny" for="txFile">Upload history CSV</label><input id="txFile" type="file" accept=".csv,text/csv">
+      <input id="txFile" type="file" accept=".csv,text/csv"><label class="btn ghost tiny" for="txFile">Upload history CSV</label>
       <button class="ghost tiny" id="txSample">Load sample history</button><span id="txMsg" class="note" role="status"></span></div>
     <div class="bar hist"><span class="note"><b>Previous count</b> (optional): an earlier count of the same locations, to see what keeps coming back.</span>
-      <label class="btn ghost tiny" for="prFile">Upload previous count</label><input id="prFile" type="file" accept=".csv,text/csv">
+      <input id="prFile" type="file" accept=".csv,text/csv"><label class="btn ghost tiny" for="prFile">Upload previous count</label>
       <button class="ghost tiny" id="prSample">Load sample previous count</button><span id="prMsg" class="note" role="status"></span></div>
     <details id="settings" class="settings">
       <summary>Detection settings</summary>

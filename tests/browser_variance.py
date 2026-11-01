@@ -16,6 +16,17 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory() as directory
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.goto((ROOT / 'variance/index.html').as_uri())
+    # Hidden file inputs must show focus on their visible upload labels.
+    for input_id in ('file', 'txFile', 'prFile'):
+        upload = page.locator('#' + input_id)
+        upload.focus()
+        assert upload.evaluate('e => e.matches(":focus-visible")')
+        label = page.locator(f'label[for="{input_id}"]')
+        assert label.evaluate('e => getComputedStyle(e).outlineStyle') != 'none', input_id
+        with page.expect_file_chooser() as chooser:
+            upload.press('Enter')
+        chooser.value.set_files([])
+    page.evaluate('scrollTo(0, 0)')
     # First visit: the sample is already showing, and the status says so near the top.
     expect(page.locator('#msg')).to_contain_text('synthetic sample count')
     expect(page.locator('#msg')).to_be_in_viewport()
