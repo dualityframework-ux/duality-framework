@@ -47,6 +47,6 @@ For each row, `unit variance = counted - system` and `dollar variance = unit var
 
 ## Reproduce
 
-Run `node variance/test.js` from the repository root for the existing engine regression suite. The example above is independently calculated and is **not** a claim that this exact three-row fixture has passed the test suite.
+Run `node variance/test.js` from the repository root for the existing engine regression suite. Run `node variance/worked-example.test.js` for the dedicated three-row regression fixture. The example above is independently calculated; the new test has been committed but its passing status has not yet been verified.
 
 [Open Variance](https://dualityframework-ux.github.io/duality-framework/variance/) · [Read the full case study](case-study.html)
