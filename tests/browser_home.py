@@ -12,7 +12,16 @@ with sync_playwright() as playwright:
     browser = playwright.chromium.launch(**options)
     for width in (320, 390, 1100):
         page = browser.new_page(viewport={"width": width, "height": 844}, java_script_enabled=False)
+        page.emulate_media(reduced_motion='reduce')
         page.goto((ROOT / "index.html").as_uri())
+        for link in page.locator('nav .links a, footer .links a').all():
+            bounds = link.bounding_box()
+            assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Navigation tap area is too small'
+        page.get_by_role('navigation').get_by_role('link', name='About', exact=True).click()
+        expect(page.locator('#about h2')).to_be_in_viewport()
+        page.locator('footer').get_by_role('link', name='Back to top ↑', exact=True).click()
+        expect(page.locator('h1')).to_be_in_viewport()
+        expect(page).to_have_url((ROOT / 'index.html').as_uri() + '#top')
         for name, href in (
             ('Open Variance ↗', './variance/'),
             ('Open Runway ↗', 'https://dualityframework-ux.github.io/Runway/'),

@@ -28,6 +28,7 @@ nav{display:flex;justify-content:space-between;align-items:center;gap:16px;paddi
 .brand{display:flex;align-items:center;gap:10px;font-size:1.05rem;font-weight:800;letter-spacing:.18em}
 .brand img{border-radius:7px}
 .links{display:flex;gap:22px}.links a{color:var(--muted)}
+nav .links a,footer .links a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:8px 0}
 .eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.2em;font-size:.74rem;font-weight:700;margin:0}
 .hero{padding-block:96px 104px}
 h1{font-size:clamp(3.2rem,9vw,7rem);letter-spacing:-.06em;line-height:1.02;margin:16px 0 24px;text-wrap:balance}
@@ -83,7 +84,7 @@ h2{font-size:clamp(1.9rem,4vw,2.8rem);letter-spacing:-.035em;line-height:1.1;mar
 footer{padding-block:36px 56px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line)}
 footer .links{gap:18px}
 @media(max-width:820px){.cards,.steps,.facts{grid-template-columns:1fr}.hero{padding-block:64px 72px}.links{gap:14px;font-size:.92rem}}
-@media(max-width:480px){nav .links{flex-wrap:wrap;justify-content:flex-end;column-gap:12px;row-gap:2px}}
+@media(max-width:600px){nav{align-items:flex-start;flex-direction:column;gap:12px}nav .links{flex-wrap:wrap;gap:4px}nav .links a{padding-inline:8px}footer .links{flex-wrap:wrap;gap:12px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
@@ -160,13 +161,14 @@ footer .links{gap:18px}
   <h2 id="log-h">Recently shipped.</h2>
   <p class="sub">What changed, newest first. Each entry links to the thing itself.</p>
   <ol class="log">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Easier navigation on phones.</b> The menu has roomier tap areas, and a footer link returns to the top. <a href="#top">Back to top</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>Project links are easier to use.</b> Clearer names and larger tap areas make each tool easier to open on a phone. <a href="#work">Explore projects</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>A shorter updates list.</b> The latest three updates stay visible, with older entries one tap away. <a href="#log">Browse updates</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>New note: Variance in SQL.</b> The Pareto, mislocated pairs and repeat variances as plain SQLite, with real results. 9 of 28 lines carry 80% of the gross. <a href="./notes/variance-sql.html">Read it</a></div></li>
   </ol>
   <details class="log-history">
     <summary><span class="show-older">Show older updates</span><span class="hide-older">Hide older updates</span></summary>
     <ol class="log" start="4">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>New note: Variance in SQL.</b> The Pareto, mislocated pairs and repeat variances as plain SQLite, with real results. 9 of 28 lines carry 80% of the gross. <a href="./notes/variance-sql.html">Read it</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>New note: ABC value classes.</b> On the sample count, C items are under 5% of value but the least accurate, and one expensive item with little stock plus two unit-of-measure errors explain 96% of it. <a href="./notes/abc-classes.html">Read it</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>frame² FIP is now computed from MLB data.</b> MLB doesn't publish team FIP, so the 58 values had no source. I now compute each season from MLB's own counts with the standard formula. Only 10 of the old values were within 0.05, so all 58 were replaced, with every input recorded. <a href="./frame2/case-study.html">Read how</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>Variance shows accuracy by value class.</b> SKUs are split into A, B and C by book value, with gross accuracy for each. On the sample, A items are 82% of value and 85% of gross variance, and C items are the least accurate at 87.99%. Also in Python. <a href="./variance/">Try it</a></div></li>
@@ -225,7 +227,7 @@ footer .links{gap:18px}
 
 <footer>
   <span>© 2026 Duality · Ian Kachadorian</span>
-  <span class="links"><a href="https://www.linkedin.com/in/iankachadorian/">LinkedIn</a><a href="https://github.com/dualityframework-ux">GitHub</a></span>
+  <span class="links"><a href="#top">Back to top ↑</a><a href="https://www.linkedin.com/in/iankachadorian/">LinkedIn</a><a href="https://github.com/dualityframework-ux">GitHub</a></span>
 </footer>
 </div>
 </body>
