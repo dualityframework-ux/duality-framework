@@ -326,3 +326,22 @@ def test_abc_summary_matches_javascript(result, key):
 
 def test_abc_in_report(result):
     assert "## Accuracy by value class" in va.report(result)
+
+
+# ---------------------------------------------------------------- the SQL note
+
+def test_sql_note_shows_the_real_queries_and_results():
+    import html
+    note = (ROOT.parent.parent / "notes/variance-sql.html").read_text()
+    queries = run_sql.load_queries()
+    for name in ["line_variance", "pareto", "mislocated_pairs", "repeat_variances"]:
+        assert html.escape(queries[name]) in note, f"{name} in the note matches queries.sql"
+    con = run_sql.connect(SAMPLE, prior_path=ROOT / "sample_prior_count.csv")
+    pareto = run_sql.run(con, "pareto")
+    cross = int((pareto["cumulative_share"] < 0.8).sum()) + 1
+    rep = run_sql.run(con, "repeat_variances")
+    same = int((rep["direction"] == "same direction").sum())
+    for quoted in [f"so {cross} of {len(pareto)} lines", f"{pareto['cumulative_share'][1] * 100:.2f}%",
+                   f"{pareto['cumulative_share'][cross - 1] * 100:.2f}%", f"{len(rep)} lines are off in both counts, and {same} of them",
+                   *[f"${d:,.2f}" for d in run_sql.run(con, "mislocated_pairs")["dollars_moved"]]]:
+        assert quoted in note, quoted
