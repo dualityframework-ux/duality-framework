@@ -125,10 +125,13 @@ input[type=range]{accent-color:var(--red);width:90px}
 /* ── SEASON GRID ── */
 .season-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;padding:0 var(--gap) var(--gap)}
 @media(max-width:400px){.season-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}}
-.sg-tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 8px 8px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.sg-tile{font:inherit;color:var(--text);text-align:left;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 8px 8px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .sg-tile:hover{border-color:var(--red);transform:translateY(-2px)}
 .sg-tile.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,169,81,.3)}
-.sg-tile.dimmed{opacity:.25}
+.sg-tile.dimmed{opacity:.25;cursor:default}
+.sg-tile:disabled:hover{transform:none;border-color:var(--border)}
+.sg-tile:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.sg-tile > span:not(.sg-tag-dot){display:block}
 .sg-era-rail{height:3px;border-radius:2px;margin-bottom:7px}
 .sg-season{font-size:.7rem;color:var(--muted)}
 .sg-wl{font-size:1rem;font-weight:700}
@@ -562,9 +565,11 @@ function buildScatterChart(data){
 }
 
 // ── SEASON CARD ───────────────────────────────────────────────────────────────
+let seasonTrigger=null;
 function showSeason(s){
   state.selectedSeason=s.season;
   const card=document.getElementById('seasonCard');
+  if(card.style.display!=='block') seasonTrigger=document.activeElement;
   const rc=resultClass(s);
   const rcLabel=isWS(s)?'World Series':isPlayoff(s)?s.playoff_result:'Missed Playoffs';
   const wsIcon=isWS(s)?'<span style="color:var(--gold)">&#9733;</span> ':'';
@@ -601,6 +606,7 @@ function showSeason(s){
     </div>
   </div>`;
   card.style.display='block';
+  card.querySelector('.close-btn').focus({preventScroll:true});
   card.classList.remove('fade-in');
   void card.offsetWidth;
   card.classList.add('fade-in');
@@ -614,6 +620,8 @@ function closeCard(){
   document.getElementById('seasonCard').style.display='none';
   state.selectedSeason=null;
   document.querySelectorAll('.sg-tile').forEach(t=>t.classList.remove('active'));
+  if(seasonTrigger?.isConnected && !seasonTrigger.disabled) seasonTrigger.focus();
+  seasonTrigger=null;
 }
 function navSeason(dir){
   if(!state.selectedSeason) return;
@@ -634,15 +642,18 @@ function buildGrid(){
     const e=getEraForSeason(s);
     const dim=!visSet.has(s.season);
     const ws=isWS(s);
-    const tile=document.createElement('div');
+    const tile=document.createElement('button');
+    tile.type='button';
+    tile.disabled=dim;
+    tile.setAttribute('aria-label',`Open ${s.season} season`);
     tile.className='sg-tile'+(dim?' dimmed':'');
     tile.dataset.season=s.season;
     tile.innerHTML=`
-      <div class="sg-era-rail" style="background:${e.color}"></div>
-      <div class="sg-season">${s.season}${ws?'<span class="sg-ws">&#9733;</span>':''}</div>
-      <div class="sg-wl">${s.wins}-${s.losses}</div>
-      <div class="sg-rd" style="color:${s.run_diff>=0?'#27ae60':'#e74c3c'}">${s.run_diff>0?'+':''}${s.run_diff}</div>
-      <div class="sg-tag-dot" style="background:${tagColor(s.tag)}"></div>`;
+      <span class="sg-era-rail" style="background:${e.color}"></span>
+      <span class="sg-season">${s.season}${ws?'<span class="sg-ws">&#9733;</span>':''}</span>
+      <span class="sg-wl">${s.wins}-${s.losses}</span>
+      <span class="sg-rd" style="color:${s.run_diff>=0?'#27ae60':'#e74c3c'}">${s.run_diff>0?'+':''}${s.run_diff}</span>
+      <span class="sg-tag-dot" style="background:${tagColor(s.tag)}"></span>`;
     if(!dim) tile.onclick=()=>showSeason(s);
     grid.appendChild(tile);
   });
