@@ -82,7 +82,8 @@ ORDER BY variance_rate DESC;
 
 -- name: confirmed_mislocations
 -- Needs a second table: transactions(date, sku, type, from_location, to_location, qty).
--- A mislocated pair is confirmed when the history has a move of that SKU from the short slot to the over slot.
+-- Legacy query name: find matching transfer evidence, not proof of causality.
+-- Match quantity and require the movement to precede both counts.
 SELECT
   o.sku,
   s.location AS short_location, o.location AS over_location, o.var_units AS units,
@@ -94,6 +95,12 @@ JOIN line_variance s
   AND ABS(o.var_units + s.var_units) <= 0.15 * MAX(o.var_units, -s.var_units)
 JOIN transactions t
   ON  t.sku = o.sku AND t.from_location = s.location AND t.to_location = o.location
+JOIN counts oc ON oc.rowid = o.line_no
+JOIN counts sc ON sc.rowid = s.line_no
+WHERE ABS(t.qty - o.var_units) < 0.000000001
+  AND ABS(t.qty + s.var_units) < 0.000000001
+  AND julianday(t.date) <= julianday(oc.count_date)
+  AND julianday(t.date) <= julianday(sc.count_date)
 ORDER BY ABS(o.var_dollars) DESC;
 
 -- name: activity_before_count

@@ -46,7 +46,7 @@ See [`example_report.md`](example_report.md) for the output on the sample count,
 | `mislocated_pairs` | Self-join on SKU: over in one slot, short by about the same amount in another |
 | `uom_candidates` | Join against a pack-size table to find exact case/each multiples |
 | `counter_rates` | Each counter's variance rate against the team rate, from a CTE |
-| `confirmed_mislocations` | Three-way join: the over/short pair matched to a transfer between exactly those slots |
+| `confirmed_mislocations` | Matching transfer evidence: SKU, paired slots, quantity and a date no later than either count |
 | `activity_before_count` | Date arithmetic (`julianday`) to find moves in the 3 days before the count |
 | `repeat_variances` | Join against the previous count to find lines off in both, and whether they flipped direction |
 

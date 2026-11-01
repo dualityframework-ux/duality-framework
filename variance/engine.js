@@ -285,17 +285,22 @@
     const countDate = result.lines.reduce((m, l) => (l.countDate && (!m || l.countDate > m) ? l.countDate : m), null);
     const tally = { confirmed: 0, supported: 0, none: 0 };
     for (const v of result.variances) {
-      const list = bySku[v.sku] || [], cd = v.countDate || countDate;
+      const cd = v.countDate || countDate;
+      // Later movements cannot explain a count already taken.
+      const list = (bySku[v.sku] || []).filter(t=>cd && t.date <= cd);
       const into = list.filter(t => t.to === v.location), outOf = list.filter(t => t.from === v.location);
       let ev = { status: "none", text: "No transactions for this item and location in the history." };
       if (v.pattern === "mislocated" && v.partner) {
-        const exact = v.qty > 0 ? into.find(t => t.from === v.partner) : outOf.find(t => t.to === v.partner);
+        const partner = result.variances.find(x=>x.sku===v.sku && x.location===v.partner);
+        const matchesQty = t => partner && Number.isFinite(t.qty) &&
+          Math.abs(t.qty - Math.abs(v.qty)) < 1e-9 && Math.abs(t.qty - Math.abs(partner.qty)) < 1e-9;
+        const exact = v.qty > 0 ? into.find(t => t.from === v.partner && matchesQty(t)) : outOf.find(t => t.to === v.partner && matchesQty(t));
         const loose = v.qty > 0 ? into[0] : list.find(t => t.to === v.partner);
         if (exact) ev = { status: "confirmed", text: `History shows ${describe(exact)}, which matches the offsetting pair.` };
-        else if (loose) ev = { status: "supported", text: `History shows ${describe(loose)}, not a move from the paired slot. Check where the stock came from.` };
+        else if (loose) ev = { status: "supported", text: `History shows ${describe(loose)}, which does not match the full transfer evidence for this variance. Check quantity and source location.` };
       } else if (v.pattern === "timing") {
         const recent = list.filter(t => (t.to === v.location || t.from === v.location) && cd && (cd - t.date) / 864e5 >= 0 && (cd - t.date) / 864e5 <= recentDays);
-        if (recent.length) ev = { status: "confirmed", text: `Activity just before the count: ${recent.map(describe).join("; ")}.` };
+        if (recent.length) ev = { status: "supported", text: `Activity just before the count: ${recent.map(describe).join("; ")}. Posting status still needs review.` };
       } else if (v.pattern === "found") {
         if (into.length) ev = { status: "supported", text: `History shows ${describe(into[0])}. The system doesn't show the stock, so the move may not have posted to this location.` };
       } else if (v.pattern === "empty") {

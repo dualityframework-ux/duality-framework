@@ -11,7 +11,10 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  checks:
+    uses: ./.github/workflows/test.yml
   deploy:
+    needs: checks
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
