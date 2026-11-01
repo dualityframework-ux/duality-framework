@@ -24,3 +24,13 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt
       - run: pytest -q
+  contrast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install playwright
+      - name: WCAG AA contrast, light and dark
+        run: python tests/check_contrast.py index.html variance/index.html variance/case-study.html frame2/index.html frame2/case-study.html

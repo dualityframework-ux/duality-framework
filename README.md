@@ -50,4 +50,8 @@ Build small, learn quickly, publish what works. The goal is not to predict every
 
 *Duality — see the signal.*
 
+## Accessibility
+
+Every public page is checked on each push for WCAG AA text contrast in light and dark mode (`tests/check_contrast.py`).
+
 Licensed under the MIT License. See [LICENSE](LICENSE).
