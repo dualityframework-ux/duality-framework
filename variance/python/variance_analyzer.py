@@ -120,6 +120,7 @@ class Result:
     counters: pd.DataFrame
     flagged_counters: list = field(default_factory=list)
     threshold: float = 1000
+    evidence: dict | None = None
 
 
 def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3, **settings) -> Result:
@@ -247,6 +248,114 @@ def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3, **s
     return Result(lines, var, summary, by_pattern, for80, counters.sort_values("rate", ascending=False), flagged, threshold)
 
 
+# ---------------------------------------------------------------- transaction history evidence
+
+TXN_FIELDS = {
+    "date": ["date", "transaction date", "txn date", "created", "timestamp"],
+    "sku": ["sku", "item", "item number", "part", "part number", "product", "material"],
+    "from": ["from", "from location", "from loc", "source", "source location", "from bin"],
+    "to": ["to", "to location", "to loc", "destination", "dest", "destination location", "to bin"],
+    "qty": ["qty", "quantity", "units", "qty moved"],
+    "type": ["type", "transaction type", "txn type", "activity", "reason"],
+}
+
+
+def load_transactions(path_or_buffer) -> pd.DataFrame:
+    """Read a moves/receipts/picks CSV into columns date, sku, from, to, qty, type."""
+    raw = pd.read_csv(path_or_buffer, dtype=str, keep_default_na=False)
+    headers = [_norm(c) for c in raw.columns]
+    rename, used = {}, set()
+    for key, names in TXN_FIELDS.items():
+        idx = next((i for i, h in enumerate(headers) if h in names), None)
+        if idx is None:
+            idx = next((i for i, h in enumerate(headers) if any(n in h for n in names)), None)
+        if idx is not None and idx not in used:
+            used.add(idx)
+            rename[raw.columns[idx]] = key
+    df = raw.rename(columns=rename)
+    if "date" not in df or "sku" not in df or ("from" not in df and "to" not in df):
+        raise ValueError("couldn't find date, SKU and from/to location columns in the transaction file")
+    for k in ("from", "to", "type"):
+        df[k] = df[k].str.strip() if k in df else ""
+    df["type"] = df["type"].str.lower()
+    df["qty"] = pd.to_numeric(df["qty"], errors="coerce") if "qty" in df else float("nan")
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df["sku"] = df["sku"].str.strip()
+    return df.dropna(subset=["date"])[df["sku"] != ""].reset_index(drop=True)
+
+
+def _describe(t) -> str:
+    q = t["qty"]
+    qs = (str(int(q)) if float(q).is_integer() else str(q)) if pd.notna(q) else None
+    if t["type"]:
+        article = "an" if t["type"][0] in "aeiou" else "a"
+        what = f"{article} {t['type']}" + (f" of {qs}" if qs else "")
+    else:
+        what = f"{qs} units moved" if qs else "stock moved"
+    if t["from"] and t["to"]:
+        where = f"from {t['from']} to {t['to']}"
+    elif t["to"]:
+        where = f"into {t['to']}"
+    else:
+        where = f"out of {t['from']}"
+    return f"{what} {where} on {t['date'].strftime('%b')} {t['date'].day}"
+
+
+def _newest_first(rows: list) -> list:
+    return sorted(rows, key=lambda t: -t["date"].value)  # sorted() is stable, like the JS engine
+
+
+def attach_evidence(r: Result, txns: pd.DataFrame, recent_days: int = 3) -> dict:
+    """Mark each variance confirmed, supported or none, with a plain explanation. Same rules as engine.js."""
+    by_sku: dict = {}
+    for t in txns.to_dict("records"):
+        by_sku.setdefault(t["sku"], []).append(t)
+    by_sku = {k: _newest_first(v) for k, v in by_sku.items()}
+    count_date = r.lines["count_date"].max()
+    tally = {"confirmed": 0, "supported": 0, "none": 0}
+    statuses, texts = [], []
+    for _, v in r.variances.iterrows():
+        rows = by_sku.get(v["sku"], [])
+        cd = v["count_date"] if pd.notna(v["count_date"]) else count_date
+        into = [t for t in rows if t["to"] == v["location"]]
+        out_of = [t for t in rows if t["from"] == v["location"]]
+        status, text = "none", "No transactions for this item and location in the history."
+        if v["pattern"] == "mislocated" and v["partner"]:
+            if v["qty"] > 0:
+                exact = next((t for t in into if t["from"] == v["partner"]), None)
+                loose = into[0] if into else None
+            else:
+                exact = next((t for t in out_of if t["to"] == v["partner"]), None)
+                loose = next((t for t in rows if t["to"] == v["partner"]), None)
+            if exact:
+                status, text = "confirmed", f"History shows {_describe(exact)}, which matches the offsetting pair."
+            elif loose:
+                status, text = "supported", f"History shows {_describe(loose)}, not a move from the paired slot. Check where the stock came from."
+        elif v["pattern"] == "timing":
+            recent = [t for t in rows if (t["to"] == v["location"] or t["from"] == v["location"]) and pd.notna(cd)
+                      and 0 <= (cd - t["date"]).total_seconds() / 86400 <= recent_days]
+            if recent:
+                status, text = "confirmed", "Activity just before the count: " + "; ".join(_describe(t) for t in recent) + "."
+        elif v["pattern"] == "found":
+            if into:
+                status, text = "supported", f"History shows {_describe(into[0])}. The system doesn't show the stock, so the move may not have posted to this location."
+        elif v["pattern"] == "empty":
+            if out_of:
+                status, text = "supported", f"Last activity was {_describe(out_of[0])}. Nothing has been put back since."
+            elif into:
+                status, text = "supported", f"History shows {_describe(into[0])} and no picks since, which points to an unrecorded move or shrink."
+        elif into or out_of:
+            last = _newest_first(into + out_of)[0]
+            text = f"Most recent activity: {_describe(last)}. It doesn't confirm or rule out this cause."
+        statuses.append(status)
+        texts.append(text)
+        tally[status] += 1
+    r.variances["evidence_status"] = statuses
+    r.variances["evidence"] = texts
+    r.evidence = {**tally, "transactions": len(txns)}
+    return r.evidence
+
+
 # ---------------------------------------------------------------- explanations and report
 
 def _money(n: float) -> str:
@@ -266,7 +375,8 @@ def explain(v: pd.Series) -> dict:
                  else f". The paired variance is {v['partner']}")
     if v.get("note"):
         mech += f" ({v['note']})"
-    return {"observation": observation, "mechanism": mech + ".", "implication": action}
+    ev = v.get("evidence") if v.get("evidence_status") in ("confirmed", "supported") else ""
+    return {"observation": observation, "mechanism": mech + ".", "implication": action, "evidence": ev or ""}
 
 
 def report(r: Result) -> str:
@@ -275,7 +385,8 @@ def report(r: Result) -> str:
            f"- Lines counted: {s['lines']:,} ({s['varianceLines']} with a variance)",
            f"- Gross accuracy: {s['grossAccuracy']:.2%} · Net accuracy: {s['netAccuracy']:.2%}",
            f"- Gross variance: {_money(s['gross'])} · Net variance: {_money(s['net'])}",
-           f"- {r.for80} lines drive 80% of gross variance", "",
+           f"- {r.for80} lines drive 80% of gross variance",
+           *([f"- Transaction history confirms {r.evidence['confirmed']} and supports {r.evidence['supported']} of {s['varianceLines']} lines"] if r.evidence else []), "",
            "## Likely causes", "", "| Cause | Lines | Gross $ | Share |", "| --- | ---: | ---: | ---: |"]
     for _, p in r.by_pattern.iterrows():
         out.append(f"| {p['name']} | {p['count']} | {_money(p['gross'])} | {p['gross'] / s['gross']:.0%} |")
@@ -287,6 +398,7 @@ def report(r: Result) -> str:
         x = explain(v)
         out += [f"### {v['location']} · {v['sku']} · {_money(v['dollars'])}", "",
                 f"**Observation.** {x['observation']}  ", f"**Mechanism.** {x['mechanism']}  ",
+                *([f"**Evidence.** {x['evidence']}  "] if x["evidence"] else []),
                 f"**Implication.** {x['implication']}", ""]
     if r.flagged_counters:
         out += ["## Counters", "", f"Flagged for a variance rate well above the team's: {', '.join(r.flagged_counters)}", ""]
@@ -299,6 +411,7 @@ def main(argv=None) -> None:
     ap.add_argument("--threshold", type=float, default=1000, help="dollar threshold for a written root cause")
     ap.add_argument("--recent-days", type=int, default=3, help="movement this close to the count counts as timing")
     ap.add_argument("--out", help="write the markdown report here instead of printing it")
+    ap.add_argument("--transactions", help="optional CSV of moves, receipts and picks to confirm causes")
     ap.add_argument("--packs", help="comma-separated pack sizes for unit-of-measure checks, e.g. 6,12,24")
     ap.add_argument("--pair-tolerance", type=float, help="how close offsetting quantities must be, e.g. 0.15 for 15%%")
     ap.add_argument("--swap-tolerance", type=float, help="same, for look-alike swaps")
@@ -306,7 +419,10 @@ def main(argv=None) -> None:
     a = ap.parse_args(argv)
     settings = {"packs": [int(x) for x in a.packs.split(",")] if a.packs else None,
                 "pair_tolerance": a.pair_tolerance, "swap_tolerance": a.swap_tolerance, "min_pair_units": a.min_pair_units}
-    text = report(analyze(load_count(a.csv), a.threshold, a.recent_days, **settings))
+    result = analyze(load_count(a.csv), a.threshold, a.recent_days, **settings)
+    if a.transactions:
+        attach_evidence(result, load_transactions(a.transactions), a.recent_days)
+    text = report(result)
     if a.out:
         with open(a.out, "w", encoding="utf-8") as f:
             f.write(text + "\n")

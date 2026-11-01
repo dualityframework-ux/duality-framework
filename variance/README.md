@@ -53,7 +53,7 @@ A CSV with one row per counted location. Required: SKU, location, system quantit
 
 ## Python and SQL
 
-The same analysis is also written in pandas and SQLite, with a parity test against this engine. See [`python/`](python/).
+The same analysis, including transaction-history evidence, is also written in pandas and SQLite, with parity tests against this engine. See [`python/`](python/).
 
 ## Files
 

@@ -1,0 +1,178 @@
+{
+ "tally": {
+  "confirmed": 4,
+  "supported": 4,
+  "none": 20,
+  "transactions": 11
+ },
+ "lines": [
+  {
+   "sku": "BAT-5100",
+   "location": "C-15-04",
+   "status": "confirmed",
+   "text": "History shows a replenishment of 12 from C-14-02 to C-15-04 on Oct 18, which matches the offsetting pair."
+  },
+  {
+   "sku": "BAT-5100",
+   "location": "C-14-02",
+   "status": "confirmed",
+   "text": "History shows a replenishment of 12 from C-14-02 to C-15-04 on Oct 18, which matches the offsetting pair."
+  },
+  {
+   "sku": "ALT-2400",
+   "location": "D-03-01",
+   "status": "supported",
+   "text": "History shows a putaway of 7 from DOCK-03 to D-21-03 on Oct 21, not a move from the paired slot. Check where the stock came from."
+  },
+  {
+   "sku": "ALT-2400",
+   "location": "D-21-03",
+   "status": "supported",
+   "text": "History shows a putaway of 7 from DOCK-03 to D-21-03 on Oct 21, not a move from the paired slot. Check where the stock came from."
+  },
+  {
+   "sku": "BRK-4410",
+   "location": "F-17-03",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "PMP-4100",
+   "location": "A-22-01",
+   "status": "supported",
+   "text": "Last activity was a pick of 3 out of A-22-01 on Oct 10. Nothing has been put back since."
+  },
+  {
+   "sku": "BRK-3301",
+   "location": "E-11-03",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "STR-2500",
+   "location": "B-19-02",
+   "status": "confirmed",
+   "text": "Activity just before the count: a pick of 4 out of B-19-02 on Oct 28."
+  },
+  {
+   "sku": "SEN-3200",
+   "location": "F-02-05",
+   "status": "confirmed",
+   "text": "Activity just before the count: a receipt of 6 from DOCK-01 to F-02-05 on Oct 29."
+  },
+  {
+   "sku": "SEN-3100",
+   "location": "D-08-04",
+   "status": "supported",
+   "text": "History shows a putaway of 9 from DOCK-02 to D-08-04 on Oct 25. The system doesn't show the stock, so the move may not have posted to this location."
+  },
+  {
+   "sku": "SPK-7002",
+   "location": "A-09-04",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "CLP-5005",
+   "location": "B-06-02",
+   "status": "none",
+   "text": "Most recent activity: a receipt of 300 from DOCK-02 to B-06-02 on Sep 30. It doesn't confirm or rule out this cause."
+  },
+  {
+   "sku": "LMP-9005",
+   "location": "E-12-01",
+   "status": "none",
+   "text": "Most recent activity: a putaway of 30 from DOCK-01 to E-12-01 on Oct 15. It doesn't confirm or rule out this cause."
+  },
+  {
+   "sku": "LMP-9006",
+   "location": "E-12-02",
+   "status": "none",
+   "text": "Most recent activity: a putaway of 22 from DOCK-01 to E-12-02 on Oct 15. It doesn't confirm or rule out this cause."
+  },
+  {
+   "sku": "BRK-4410",
+   "location": "E-01-04",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "BLT-8120",
+   "location": "E-09-02",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "BLT-8120",
+   "location": "A-16-01",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "BRK-3301",
+   "location": "F-08-04",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "FLT-2210",
+   "location": "F-20-01",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "LMP-9005",
+   "location": "E-14-04",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "LMP-9006",
+   "location": "B-11-03",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "FLT-1042",
+   "location": "C-23-02",
+   "status": "none",
+   "text": "Most recent activity: a pick of 2 out of C-23-02 on Oct 24. It doesn't confirm or rule out this cause."
+  },
+  {
+   "sku": "FUS-6010",
+   "location": "B-10-01",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "SPK-7001",
+   "location": "D-15-04",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "SPK-7001",
+   "location": "B-05-02",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "FLT-1043",
+   "location": "E-14-01",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "TPE-7100",
+   "location": "D-24-01",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  },
+  {
+   "sku": "CLP-5005",
+   "location": "A-05-05",
+   "status": "none",
+   "text": "No transactions for this item and location in the history."
+  }
+ ]
+}

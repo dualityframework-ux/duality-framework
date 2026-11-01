@@ -79,3 +79,32 @@ FROM line_variance
 WHERE counter <> ''
 GROUP BY counter
 ORDER BY variance_rate DESC;
+
+-- name: confirmed_mislocations
+-- Needs a second table: transactions(date, sku, type, from_location, to_location, qty).
+-- A mislocated pair is confirmed when the history has a move of that SKU from the short slot to the over slot.
+SELECT
+  o.sku,
+  s.location AS short_location, o.location AS over_location, o.var_units AS units,
+  t.date AS moved_on, t.type, t.qty AS qty_moved
+FROM line_variance o
+JOIN line_variance s
+  ON  s.sku = o.sku AND s.location <> o.location
+  AND o.var_units >= 3 AND s.var_units < 0
+  AND ABS(o.var_units + s.var_units) <= 0.15 * MAX(o.var_units, -s.var_units)
+JOIN transactions t
+  ON  t.sku = o.sku AND t.from_location = s.location AND t.to_location = o.location
+ORDER BY ABS(o.var_dollars) DESC;
+
+-- name: activity_before_count
+-- Variance lines with any transaction at their location in the 3 days before the count: likely timing issues.
+SELECT
+  v.location, v.sku, v.var_units, t.date AS activity_on, t.type, t.qty,
+  CAST(julianday(c.count_date) - julianday(t.date) AS INTEGER) AS days_before_count
+FROM line_variance v
+JOIN counts c ON c.rowid = v.line_no
+JOIN transactions t
+  ON  t.sku = v.sku AND (t.to_location = v.location OR t.from_location = v.location)
+  AND julianday(c.count_date) - julianday(t.date) BETWEEN 0 AND 3
+WHERE v.var_units <> 0
+ORDER BY v.location;

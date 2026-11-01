@@ -168,3 +168,52 @@ def test_tuned_settings_match_javascript():
 def test_unknown_setting_rejected():
     with pytest.raises(TypeError, match="pair_tol"):
         va.analyze(va.load_count(SAMPLE), pair_tol=0.2)
+
+
+# ---------------------------------------------------------------- transaction history evidence
+
+TXNS = ROOT / "sample_transactions.csv"
+EVIDENCE = json.loads((HERE / "expected_evidence_from_js.json").read_text())
+
+
+@pytest.fixture(scope="module")
+def with_evidence():
+    r = va.analyze(va.load_count(SAMPLE), threshold=1000, recent_days=3)
+    va.attach_evidence(r, va.load_transactions(TXNS), recent_days=3)
+    return r
+
+
+def test_evidence_tally_matches_javascript(with_evidence):
+    assert with_evidence.evidence == EVIDENCE["tally"]
+
+
+def test_evidence_matches_javascript_line_by_line(with_evidence):
+    py = {(x.sku, x.location): (x.evidence_status, x.evidence) for x in with_evidence.variances.itertuples()}
+    js = {(e["sku"], e["location"]): (e["status"], e["text"]) for e in EVIDENCE["lines"]}
+    assert py == js
+
+
+def test_report_cites_evidence(with_evidence):
+    text = va.report(with_evidence)
+    assert "**Evidence.** History shows a replenishment of 12 from C-14-02 to C-15-04" in text
+    assert "confirms 4 and supports 4" in text
+
+
+def test_bad_transaction_file(tmp_path):
+    f = tmp_path / "t.csv"
+    f.write_text("a,b\n1,2\n")
+    with pytest.raises(ValueError, match="from/to"):
+        va.load_transactions(f)
+
+
+def test_sql_confirms_battery_mislocation_only():
+    con = run_sql.connect(SAMPLE, TXNS)
+    df = run_sql.run(con, "confirmed_mislocations")
+    assert list(map(tuple, df[["sku", "short_location", "over_location"]].values)) == [("BAT-5100", "C-14-02", "C-15-04")]
+
+
+def test_sql_activity_before_count_finds_timing_lines(with_evidence):
+    con = run_sql.connect(SAMPLE, TXNS)
+    found = set(run_sql.run(con, "activity_before_count")["sku"])
+    confirmed_timing = set(with_evidence.variances.query("pattern == 'timing' and evidence_status == 'confirmed'")["sku"])
+    assert confirmed_timing <= found
