@@ -13,6 +13,6 @@
 
 ## Later
 - Publish a hosted demo of frame².
-- Normalize frame² to 162 games with a Pythagorean expectation and unify its signal rule.
+- Add runs scored and allowed to frame²'s data for a full Pythagorean expectation.
 
 This roadmap is directional, not a delivery commitment.

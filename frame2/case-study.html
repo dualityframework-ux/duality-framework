@@ -62,7 +62,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
 
   <p class="eyebrow">Case study</p>
   <h1>Did they earn that record, or get lucky?</h1>
-  <p class="dek">Separating process from result across 58 Red Sox seasons: the rules, what they found, a data mistake I caught and fixed, and where the model falls short.</p>
+  <p class="dek">Separating process from result across 58 Red Sox seasons: expected wins per 162 games, what they found, a data mistake I caught and fixed, and where the model falls short.</p>
   <div class="meta"><span>Ian Kachadorian</span><span>October 2026</span><span>5 min read</span></div>
 
   <h2>The problem</h2>
@@ -74,17 +74,18 @@ td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
   <h3>1. One row per season</h3>
   <p>The dataset covers every Red Sox season from 1967 to 2024: wins and losses, run differential, team OPS, OBP and SLG, ERA and FIP, the playoff result, the manager, the key players, and a one-sentence summary of what drove the season.</p>
 
-  <h3>2. Tag each season with plain rules</h3>
+  <h3>2. Tag each season against what its run differential was worth</h3>
+  <p>Each season gets an <b>expected win total</b> from its run differential, using the rule of thumb that about 10 runs are worth one win: <span class="num">81 + run diff ÷ 10</span>. Both the record and the expectation are scaled to 162 games, so strike years and 2020's 60-game season are judged fairly. <b>Luck</b> is the gap between the two.</p>
   <div class="scroll"><table>
     <thead><tr><th>Tag</th><th>Rule</th><th>Reading</th></tr></thead>
     <tbody>
-      <tr><td><span class="tag">Signal</span></td><td class="num">≥ 95 wins and ≥ +150 run diff</td><td>Elite process matched an elite record</td></tr>
-      <tr><td><span class="tag">Underperformed</span></td><td class="num">≥ +75 run diff, &lt; 90 wins</td><td>The process pointed higher than the record</td></tr>
-      <tr><td><span class="tag">Overperformed</span></td><td class="num">&lt; +25 run diff, ≥ 92 wins</td><td>The record outran the process</td></tr>
+      <tr><td><span class="tag">Overperformed</span></td><td class="num">luck ≥ +4 wins</td><td>The record outran the process</td></tr>
+      <tr><td><span class="tag">Underperformed</span></td><td class="num">luck ≤ −4 wins</td><td>The process pointed higher than the record</td></tr>
+      <tr><td><span class="tag">Signal</span></td><td class="num">95+ win pace, within 4 of expected</td><td>Elite process matched an elite record</td></tr>
       <tr><td><span class="tag">Balanced</span></td><td>Everything else</td><td>Record and process told the same story</td></tr>
     </tbody>
   </table></div>
-  <p>Rules instead of a model was a deliberate choice: anyone can check a tag by looking at two numbers.</p>
+  <p>Rules instead of a model was a deliberate choice: anyone can check a tag with two numbers. The first version used raw-win thresholds, and the timeline and the app had drifted to two different definitions of signal. Both now come from this one rule.</p>
 
   <h3>3. Explain it the same way every time</h3>
   <p>Every insight follows observation, mechanism, implication. For 2024: the team finished 81–81; run differential was +4, so the record matched the process; an average team got an average result, with nothing to chase or excuse.</p>
@@ -93,11 +94,23 @@ td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
   <p>The Python and Streamlit app has a season explorer, an era comparison, a franchise timeline, a post generator and a live game module that reads the MLB Stats API. It is covered by 215 automated tests that run on every push. The <a href="./">live timeline</a> is generated from the same data.</p>
 
   <h2>What it found</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Season</th><th class="r">Record</th><th class="r">Run diff</th><th class="r">Expected</th><th class="r">Luck</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>1985</td><td class="r">81–81</td><td class="r">+80</td><td class="r">89.0</td><td class="r">−8.0</td><td>Missed playoffs</td></tr>
+      <tr><td>2002</td><td class="r">93–69</td><td class="r">+194</td><td class="r">100.4</td><td class="r">−7.4</td><td>Missed playoffs</td></tr>
+      <tr><td>2007</td><td class="r">96–66</td><td class="r">+210</td><td class="r">102.0</td><td class="r">−6.0</td><td>Won the World Series</td></tr>
+      <tr><td>1975</td><td class="r">95–65</td><td class="r">+87</td><td class="r">89.8</td><td class="r">+6.4</td><td>Lost the World Series</td></tr>
+      <tr><td>1995</td><td class="r">86–58</td><td class="r">+93</td><td class="r">91.5</td><td class="r">+5.3</td><td>Lost ALDS</td></tr>
+    </tbody>
+  </table></div>
   <ul>
-    <li><b>Six seasons rate as signal,</b> and four of them won the World Series: 2004, 2007, 2013 and 2018. The other two, <span class="num">2003</span> (+152) and <span class="num">2008</span> (+151), had championship-level process and lost in the ALCS. Same process, different variance.</li>
-    <li><b>Four seasons underperformed:</b> 1973, 1985, 1988 and 1995. The 1985 team went 81–81 with a +80 run differential, a better team than its record.</li>
-    <li><b>No season clearly overperformed</b> under these rules. The record rarely ran far ahead of the run differential.</li>
-    <li><b>Across all 58 seasons,</b> wins and run differential correlate at <span class="num">0.74</span>. Process explains most of the record, and the rest is what makes baseball interesting.</li>
+    <li><b>1985 was the unluckiest season:</b> a team worth 89 wins finished at .500. <b>2002</b> played like a 100-win team and missed the playoffs.</li>
+    <li><b>The 2007 champions were even better than their record,</b> about six wins short of what +210 was worth.</li>
+    <li><b>1975 was the luckiest pennant,</b> about six wins ahead of its run differential.</li>
+    <li><b>Eight seasons rate as signal,</b> including 1977 and 1978, two elite teams that never reached the playoffs, and 2003 and 2008, which lost in the ALCS with title-level process.</li>
+    <li><b>Scaling changes conclusions.</b> 1995 went 86–58: under raw-win rules it looked underperformed, but its 97-win pace was about five wins <i>ahead</i> of its run differential.</li>
+    <li><b>Win pace and expected wins correlate at <span class="num">0.91</span></b> across all 58 seasons. Process explains most of the record, and the rest is what makes baseball interesting.</li>
   </ul>
 
   <div class="callout">
@@ -106,36 +119,15 @@ td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular
 
   <h2>The limits</h2>
   <ul>
-    <li><b>Shortened seasons are not normalized.</b> The rules use raw wins, so the strike years and 2020's 60 games are judged against full-season thresholds. In 1995 the team went 86–58, a 96-win pace, but is tagged underperformed because 86 is under 90.</li>
-    <li><b>The thresholds are hand-set.</b> +150 for signal is a judgment, not a fitted value.</li>
-    <li><b>Two definitions of signal exist in the project.</b> The interactive timeline uses a broader rule (95 wins and +80) than the analysis engine. They need to agree.</li>
+    <li><b>The ±4 band is a judgment.</b> 2018 (108 wins, +229) lands just over it at +4.1 and reads as overperformed, though it was an elite team either way.</li>
+    <li><b>Ten runs per win is a rule of thumb.</b> The dataset has run differential but not runs scored and allowed, so the full Pythagorean formula isn't possible yet.</li>
     <li><b>Run differential is a simple process measure.</b> It ignores schedule strength and the league's run environment.</li>
   </ul>
-
-  <h2>Update: expected wins, scaled to 162 games</h2>
-  <p>Since writing this, I added the first fix. Every season now gets an expected win total from its run differential, using the rule of thumb that about 10 runs of differential are worth one win, scaled to 162 games. Luck is the gap between the team's win pace and that expectation.</p>
-  <div class="scroll"><table>
-    <thead><tr><th>Season</th><th class="r">Record</th><th class="r">Run diff</th><th class="r">Expected</th><th class="r">Luck</th><th>Result</th></tr></thead>
-    <tbody>
-      <tr><td>1985</td><td class="r">81–81</td><td class="r">+80</td><td class="r">89.0</td><td class="r">−8.0</td><td>Missed playoffs</td></tr>
-      <tr><td>2002</td><td class="r">93–69</td><td class="r">+194</td><td class="r">100.4</td><td class="r">−7.4</td><td>Missed playoffs</td></tr>
-      <tr><td>1975</td><td class="r">95–65</td><td class="r">+87</td><td class="r">89.8</td><td class="r">+6.4</td><td>World Series</td></tr>
-      <tr><td>1995</td><td class="r">86–58</td><td class="r">+93</td><td class="r">91.5</td><td class="r">+5.3</td><td>Lost ALDS</td></tr>
-    </tbody>
-  </table></div>
-  <ul>
-    <li><b>1985 was the unluckiest season in the data:</b> a team worth 89 wins finished at .500.</li>
-    <li><b>2002 played like a 100-win team</b> and missed the playoffs.</li>
-    <li><b>1975 was the luckiest pennant,</b> about six wins ahead of its run differential.</li>
-    <li><b>1995 shows why scaling matters.</b> The original rules tag it underperformed because 86 wins is under 90. Over 162 games it was a 97-win pace, about five wins <i>ahead</i> of its run differential. Same season, opposite conclusion.</li>
-  </ul>
-  <p>Win pace and expected wins correlate at <span class="num">0.91</span> once seasons are scaled, against 0.74 for raw wins and run differential. The luck table is in the app's process-vs-result page, with tests behind the math.</p>
 
   <h2>What I would build next</h2>
   <ol>
     <li>Add runs scored and allowed to the data, so expected wins can use the full Pythagorean formula instead of the runs-per-win rule below.</li>
-    <li>Settle one definition of signal and use it everywhere.</li>
-    <li>Host the full Streamlit app so every page is live, not just the timeline.</li>
+        <li>Host the full Streamlit app so every page is live, not just the timeline.</li>
   </ol>
 
   <div class="cta"><a class="btn" href="./">Open the timeline</a><a class="btn ghost" href="https://github.com/dualityframework-ux/frame2_mvp">Read the code</a><a class="btn ghost" href="../">More from Duality</a></div>
