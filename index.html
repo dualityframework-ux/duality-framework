@@ -94,7 +94,7 @@ footer .links{gap:18px}
 <div class="wrap">
 <nav aria-label="Main navigation">
   <a class="brand" href="#top"><img src="./assets/duality-mark.svg" alt="" width="28" height="28">DUALITY</a>
-  <div class="links"><a href="#work">Work</a><a href="#log">Log</a><a href="#notes">Notes</a><a href="#method">Method</a><a href="#about">About</a></div>
+  <div class="links"><a href="#work">Work</a><a href="#notes">Analysis</a><a href="#method">Method</a><a href="#about">Experience</a><a href="#log">Updates</a></div>
 </nav>
 
 <main id="top">
@@ -161,18 +161,54 @@ footer .links{gap:18px}
   </div>
 </section>
 
+
+
+<section id="notes" aria-labelledby="notes-h">
+  <p class="eyebrow">Analysis</p>
+  <h2 id="notes-h">Inspect the reasoning.</h2>
+  <p class="sub">Worked inventory analyses using Variance’s synthetic sample. Follow the SQL, see how value classes change the priorities, and compare gross with net accuracy.</p>
+  <ol class="log">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b><a href="./notes/variance-sql.html">Three SQL queries that explain a cycle count</a></b> A window function, a self-join and a join across two counts, with real results. 4 min read.</div></li>
+    <li><time datetime="2026-11-01">Nov 1</time><div><b><a href="./notes/abc-classes.html">The lowest-value 5% of stock was the least accurate</a></b> ABC classes show where the dollars are, and where cheap setup mistakes hide. 3 min read.</div></li>
+    <li><time datetime="2026-10-31">Oct 31</time><div><b><a href="./notes/gross-vs-net.html">Why a 99% count can hide $11,000</a></b> Net accuracy lets overages cancel shortages; gross doesn't. The gap is usually stock in the wrong place. 4 min read.</div></li>
+  </ol>
+</section>
+
+<section id="method" aria-labelledby="method-h">
+  <p class="eyebrow">Method</p>
+  <h2 id="method-h">Result = process + variance.</h2>
+  <p class="sub">Every tool here follows the same three steps, the same way I root-cause an inventory variance at work.</p>
+  <ol class="steps">
+    <li><h3>Observation</h3><p>State what happened, plainly, with the number.</p></li>
+    <li><h3>Mechanism</h3><p>Find the driver underneath it, and separate it from noise.</p></li>
+    <li><h3>Implication</h3><p>Say what it means for the next decision.</p></li>
+  </ol>
+  <div class="example"><p><b>Observation:</b> the 2024 Red Sox finished 81–81. <b>Mechanism:</b> run differential was close to zero, and win pace was close to the estimate. <b>Implication:</b> this comparison alone does not establish a cause or a roster decision.</p></div>
+</section>
+
+<section id="about" aria-labelledby="about-h">
+  <p class="eyebrow">Experience</p>
+  <h2 id="about-h">Built by someone who reconciles for a living.</h2>
+  <p class="sub">I'm Ian Kachadorian. I've spent my career making numbers agree and explaining when they don't. Duality is where I turn that habit into tools.</p>
+  <div class="facts">
+    <div class="fact"><div class="n">99.5<span>%+</span></div><h3>Fund accounting, BNY Mellon</h3><p>Managed a small team delivering NAV calculations, fund performance and expense allocation at 99.5%+ accuracy.</p></div>
+    <div class="fact"><div class="n">250<span>K+</span></div><h3>Inventory control</h3><p>Supervised 10 cycle counters over 250,000+ locations per trimester at 97.5% gross and 99% net accuracy.</p></div>
+    <div class="fact"><div class="n">58</div><h3>Sports modeling</h3><p>Built predictive models of NCAA basketball teams and players in Python and R, and a 58-season Red Sox history checked against MLB data.</p></div>
+  </div>
+</section>
 <section id="log" aria-labelledby="log-h">
   <p class="eyebrow">Log</p>
   <h2 id="log-h">Recently shipped.</h2>
   <p class="sub">What changed, newest first. Each entry links to the thing itself.</p>
   <ol class="log">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Analysis and experience first.</b> Worked examples and professional background now appear before the update history. <a href="#notes">Inspect the analysis</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>A win gap is not proof of luck.</b> frame² now distinguishes its estimate from causal and predictive claims. <a href="./frame2/case-study.html#limits">Read the limits</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>Testing misleading inventory patterns.</b> New synthetic challenges expose false-positive causes and check the boundaries of transaction evidence. <a href="./variance/case-study.html#result">Read the findings</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>From finding to decision.</b> The Variance case study now leads with the investigation priorities, recommended actions and limits of its synthetic evidence. <a href="./variance/case-study.html#decision-summary">Read the summary</a></div></li>
   </ol>
   <details class="log-history">
     <summary><span class="show-older">Show older updates</span><span class="hide-older">Hide older updates</span></summary>
     <ol class="log" start="4">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>From finding to decision.</b> The Variance case study now leads with the investigation priorities, recommended actions and limits of its synthetic evidence. <a href="./variance/case-study.html#decision-summary">Read the summary</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>A clearer introduction.</b> My analyst focus, relevant experience and featured inventory case study are now at the top. <a href="#top">Read the introduction</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>A starting point for the sample.</b> Variance now points first-time visitors to the largest differences in its synthetic count. <a href="./variance/">Explore Variance</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>Visible keyboard focus for uploads.</b> Variance now highlights the upload control when you reach it with the keyboard. <a href="./variance/">Open Variance</a></div></li>
@@ -201,40 +237,6 @@ footer .links{gap:18px}
     <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance launched.</b> Cycle count accuracy, a Pareto of the dollars, root causes for every line, drafted write-ups and a recount sheet in walking order. <a href="./variance/">Try it</a></div></li>
     </ol>
   </details>
-</section>
-
-<section id="notes" aria-labelledby="notes-h">
-  <p class="eyebrow">Notes</p>
-  <h2 id="notes-h">Short write-ups.</h2>
-  <p class="sub">Inventory and finance ideas, explained with real numbers from the tools.</p>
-  <ol class="log">
-    <li><time datetime="2026-11-01">Nov 1</time><div><b><a href="./notes/variance-sql.html">Three SQL queries that explain a cycle count</a></b> A window function, a self-join and a join across two counts, with real results. 4 min read.</div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b><a href="./notes/abc-classes.html">The lowest-value 5% of stock was the least accurate</a></b> ABC classes show where the dollars are, and where cheap setup mistakes hide. 3 min read.</div></li>
-    <li><time datetime="2026-10-31">Oct 31</time><div><b><a href="./notes/gross-vs-net.html">Why a 99% count can hide $11,000</a></b> Net accuracy lets overages cancel shortages; gross doesn't. The gap is usually stock in the wrong place. 4 min read.</div></li>
-  </ol>
-</section>
-
-<section id="method" aria-labelledby="method-h">
-  <p class="eyebrow">Method</p>
-  <h2 id="method-h">Result = process + variance.</h2>
-  <p class="sub">Every tool here follows the same three steps, the same way I root-cause an inventory variance at work.</p>
-  <ol class="steps">
-    <li><h3>Observation</h3><p>State what happened, plainly, with the number.</p></li>
-    <li><h3>Mechanism</h3><p>Find the driver underneath it, and separate it from noise.</p></li>
-    <li><h3>Implication</h3><p>Say what it means for the next decision.</p></li>
-  </ol>
-  <div class="example"><p><b>Observation:</b> the 2024 Red Sox finished 81–81. <b>Mechanism:</b> run differential was close to zero, and win pace was close to the estimate. <b>Implication:</b> this comparison alone does not establish a cause or a roster decision.</p></div>
-</section>
-
-<section id="about" aria-labelledby="about-h">
-  <p class="eyebrow">About</p>
-  <h2 id="about-h">Built by someone who reconciles for a living.</h2>
-  <p class="sub">I'm Ian Kachadorian. I've spent my career making numbers agree and explaining when they don't. Duality is where I turn that habit into tools.</p>
-  <div class="facts">
-    <div class="fact"><div class="n">99.5<span>%+</span></div><h3>Fund accounting, BNY Mellon</h3><p>Managed a small team delivering NAV calculations, fund performance and expense allocation at 99.5%+ accuracy.</p></div>
-    <div class="fact"><div class="n">250<span>K+</span></div><h3>Inventory control</h3><p>Supervised 10 cycle counters over 250,000+ locations per trimester at 97.5% gross and 99% net accuracy.</p></div>
-    <div class="fact"><div class="n">58</div><h3>Sports modeling</h3><p>Built predictive models of NCAA basketball teams and players in Python and R, and a 58-season Red Sox history checked against MLB data.</p></div>
-  </div>
 </section>
 </main>
 
