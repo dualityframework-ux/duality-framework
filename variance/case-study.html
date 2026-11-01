@@ -43,6 +43,7 @@ h1{font-size:clamp(2rem,6vw,2.8rem);line-height:1.1;letter-spacing:-.03em;font-w
 .meta{font-size:.85rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--rule)}
 h2{font-size:1.35rem;letter-spacing:-.015em;margin:40px 0 10px;text-wrap:balance}
 h3{font-size:1.05rem;margin:26px 0 6px}
+h4{font-size:.95rem;margin:20px 0 6px}
 p{margin:0 0 14px}
 ul,ol{margin:0 0 14px;padding-left:1.3rem}
 li{margin-bottom:6px}
@@ -55,6 +56,9 @@ li{margin-bottom:6px}
 .stat .v{font-family:var(--f-num);font-size:1.4rem;font-weight:600}
 .stat .k{font-size:.8rem;color:var(--muted)}
 .scroll{overflow-x:auto;margin:14px 0}
+.sql{font-family:var(--f-num);font-size:.84rem;line-height:1.55;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;margin:14px 0;overflow-x:auto}
+.sql code{font:inherit}
+.sql-result td{white-space:nowrap}
 table{width:100%;border-collapse:collapse;font-size:.9rem}
 th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--muted)}
 td{padding:8px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
@@ -119,6 +123,24 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
   </div>
   <p>A 99% net looks clean. The gross number shows more than $11,000 of absolute discrepancies to investigate; the count alone does not establish their causes.</p>
 
+  <h4 id="sql">The same numbers in SQL</h4>
+  <p>These figures come from one SQL query over the count, which a test reruns against the sample on every change:</p>
+  <pre class="sql"><code>-- Gross accuracy counts every variance dollar; net lets overs and shorts offset.
+SELECT
+  COUNT(*)                                                        AS lines,
+  SUM(var_units &lt;&gt; 0)                                             AS variance_lines,
+  ROUND(1.0 - SUM(var_units &lt;&gt; 0) * 1.0 / COUNT(*), 4)            AS location_accuracy,
+  ROUND(SUM(ABS(var_dollars)), 2)                                 AS gross_variance,
+  ROUND(SUM(var_dollars), 2)                                      AS net_variance,
+  ROUND(1.0 - SUM(ABS(var_dollars)) / SUM(book_value), 4)         AS gross_accuracy,
+  ROUND(1.0 - ABS(SUM(var_dollars)) / SUM(book_value), 4)         AS net_accuracy
+FROM line_variance;</code></pre>
+  <div class="scroll"><table class="sql-result">
+    <thead><tr><th>Result on the sample</th><th class="r">Value</th></tr></thead>
+    <tbody><tr><td>Lines counted</td><td class="r">164</td></tr><tr><td>Lines with a variance</td><td class="r">28</td></tr><tr><td>Gross variance</td><td class="r">$11,562.25</td></tr><tr><td>Net variance</td><td class="r">−$2,006.45</td></tr><tr><td>Gross accuracy</td><td class="r">94.32%</td></tr><tr><td>Net accuracy</td><td class="r">99.01%</td></tr></tbody>
+  </table></div>
+  <p>The only difference between the two accuracy columns is where <code>ABS()</code> sits: around each line's dollars for gross, around the total for net. <a href="../notes/variance-sql.html">See three more queries with their results</a>: a window function for the Pareto ranking, a self-join for mislocated stock, and a join across two counts for repeat variances.</p>
+
   <h3>2. Prioritize by dollars</h3>
   <p>A Pareto view ranks every line by absolute dollar impact. In the sample, 9 of 28 variance lines account for 80% of the gross. Those get looked at first.</p>
 
@@ -156,7 +178,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
   <h3>Challenge cases beyond the demo</h3>
   <p>Separate, hand-authored synthetic cases show where the rules can mislead: unrelated losses and receipts can look like a mislocation, a genuine receipt can look like a pack-size error, and unrelated quantity changes can look like transposed digits. These are plausible suggestions with the wrong stipulated cause.</p>
   <p>The evidence checks reject transfers after the count and transactions for another item; a wrong quantity receives only partial support. Even an exact matching transfer record does not prove causation. Passing these checks reproduces the documented behavior, including false positives; it is not a measured diagnostic accuracy rate.</p>
-  <p><a href="https://github.com/dualityframework-ux/duality-framework/blob/improvements/analyst-introduction/variance/VALIDATION.md">Read the challenge scenarios, results and limits</a>.</p>
+  <p><a href="https://github.com/dualityframework-ux/duality-framework/blob/main/variance/VALIDATION.md">Read the challenge scenarios, results and limits</a>.</p>
 
   <h2 id="limits">The limits</h2>
   <ul>

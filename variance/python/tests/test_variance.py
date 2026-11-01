@@ -345,3 +345,22 @@ def test_sql_note_shows_the_real_queries_and_results():
                    f"{pareto['cumulative_share'][cross - 1] * 100:.2f}%", f"{len(rep)} lines are off in both counts, and {same} of them",
                    *[f"${d:,.2f}" for d in run_sql.run(con, "mislocated_pairs")["dollars_moved"]]]:
         assert quoted in note, quoted
+
+
+def test_case_study_shows_the_real_accuracy_query_and_result():
+    import html
+    page = (ROOT.parent / "case-study.html").read_text()
+    assert html.escape(run_sql.load_queries()["accuracy"]) in page, "case-study SQL matches queries.sql"
+    r = run_sql.run(run_sql.connect(SAMPLE), "accuracy").iloc[0]
+    for label, value in [("Lines counted", f"{int(r.lines)}"),
+                         ("Lines with a variance", f"{int(r.variance_lines)}"),
+                         ("Gross variance", f"${r.gross_variance:,.2f}"),
+                         ("Net variance", f"{'−' if r.net_variance < 0 else ''}${abs(r.net_variance):,.2f}"),
+                         ("Gross accuracy", f"{r.gross_accuracy * 100:.2f}%"),
+                         ("Net accuracy", f"{r.net_accuracy * 100:.2f}%")]:
+        row = f'<tr><td>{label}</td><td class="r">{value}</td></tr>'
+        assert row in page, row
+    # The stat tiles above the query quote the same result.
+    for tile in [f"{r.net_accuracy * 100:.2f}%", f"{r.gross_accuracy * 100:.2f}%",
+                 f"${r.gross_variance:,.0f}", f"${abs(r.net_variance):,.0f} net"]:
+        assert tile in page, tile
