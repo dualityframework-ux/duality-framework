@@ -48,6 +48,15 @@ with sync_playwright() as playwright:
                 assert primary['y'] + primary['height'] <= supporting['y']
             else:
                 expect(card.locator('.project-open')).to_have_count(0)
+        # Each skill on the Variance card links to a page and section that exist.
+        skills = page.locator('.card .skills a')
+        expect(skills).to_have_count(6)
+        for href in skills.evaluate_all('links => links.map(a => a.getAttribute("href"))'):
+            if href.startswith('./'):
+                path, _, anchor = href[2:].partition('#')
+                target = ROOT / path
+                assert target.is_file(), href
+                assert f'id="{anchor}"' in target.read_text(), href
         expect(page.locator('#log > ol > li')).to_have_count(3)
         history = page.locator('.log-history')
         older = history.locator('li').first

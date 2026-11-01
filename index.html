@@ -50,6 +50,7 @@ h2{font-size:clamp(1.9rem,4vw,2.8rem);letter-spacing:-.035em;line-height:1.1;mar
 .card h3{font-size:1.3rem;margin:0}
 .card p{color:var(--muted);margin:0}
 .card .q{color:var(--fg);font-weight:600}
+.card .skills{font-size:.88rem}.card .skills b{color:var(--fg)}.card .skills a{color:var(--fg);text-decoration:underline;text-underline-offset:3px}
 .meta{margin-top:auto;padding-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
 .status{border:1px solid var(--line-2);border-radius:999px;padding:2px 10px}
 .status.live{border-color:var(--accent);color:var(--accent)}
@@ -118,6 +119,7 @@ footer .links{gap:18px}
         <h3>Variance</h3>
         <p class="q">Why is the cycle count off?</p>
         <p>Upload a count and get gross and net accuracy, the lines driving 80% of the dollars, and the likely root cause of each variance, with a drafted audit write-up for anything over your threshold. Add last month's count to see what keeps coming back.</p>
+        <p class="skills"><b>Skills shown:</b> <a href="./variance/case-study.html#sql">SQL aggregation</a> · <a href="./notes/variance-sql.html#window">window functions</a> · <a href="./notes/variance-sql.html#self-join">self-joins</a> · <a href="./notes/variance-sql.html#two-counts">joins across two counts</a> · <a href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance/python">Python/pandas checked against the JavaScript engine</a> · <a href="https://github.com/dualityframework-ux/duality-framework/blob/main/variance/VALIDATION.md">synthetic test cases</a></p>
         <div class="meta"><span class="status live">Live</span><span>Oct 2026 · JavaScript, Python, SQL · tested</span></div>
         <a class="btn primary project-open" href="./variance/">Open Variance ↗</a>
         <div class="go"><a href="./variance/case-study.html">Case study</a><a href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance">View code ↗</a><a href="https://github.com/dualityframework-ux/duality-framework/tree/main/variance/python">Python + SQL ↗</a></div>
@@ -201,13 +203,14 @@ footer .links{gap:18px}
   <h2 id="log-h">Recently shipped.</h2>
   <p class="sub">What changed, newest first. Each entry links to the thing itself.</p>
   <ol class="log">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Skills at a glance.</b> The Variance card now lists the SQL, Python and testing skills it shows, each linked to where you can check it. <a href="#work">See the card</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>The SQL behind the headline numbers.</b> The Variance case study now shows the query that produces its gross and net accuracy, with the result on the synthetic sample. <a href="./variance/case-study.html#sql">See the query</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>Analysis and experience first.</b> Worked examples and professional background now appear before the update history. <a href="#notes">Inspect the analysis</a></div></li>
-    <li><time datetime="2026-11-01">Nov 1</time><div><b>A win gap is not proof of luck.</b> frame² now distinguishes its estimate from causal and predictive claims. <a href="./frame2/case-study.html#limits">Read the limits</a></div></li>
   </ol>
   <details class="log-history">
     <summary><span class="show-older">Show older updates</span><span class="hide-older">Hide older updates</span></summary>
     <ol class="log" start="4">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>A win gap is not proof of luck.</b> frame² now distinguishes its estimate from causal and predictive claims. <a href="./frame2/case-study.html#limits">Read the limits</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>Testing misleading inventory patterns.</b> New synthetic challenges expose false-positive causes and check the boundaries of transaction evidence. <a href="./variance/case-study.html#result">Read the findings</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>Explore seasons with the keyboard.</b> frame² season tiles open with Enter or Space and restore focus when details close. Filters keep keyboard focus while you type. <a href="./frame2/">Explore frame²</a></div></li>
     <li><time datetime="2026-11-01">Nov 1</time><div><b>From finding to decision.</b> The Variance case study now leads with the investigation priorities, recommended actions and limits of its synthetic evidence. <a href="./variance/case-study.html#decision-summary">Read the summary</a></div></li>
