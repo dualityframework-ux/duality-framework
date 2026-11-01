@@ -15,11 +15,14 @@ pip install -r requirements.txt
 # Markdown report: accuracy, causes, and a drafted write-up for every line over the threshold
 python variance_analyzer.py sample_count.csv --threshold 1000 --out report.md
 
+# Tune detection for your building
+python variance_analyzer.py sample_count.csv --packs 6,12,24 --pair-tolerance 0.1 --min-pair-units 5
+
 # SQL: load the CSV into SQLite and run every query, or one by name
 python run_sql.py sample_count.csv
 python run_sql.py sample_count.csv mislocated_pairs
 
-# Tests (37), including parity with the JavaScript engine
+# Tests (40), including parity with the JavaScript engine at default and tuned settings
 pytest -q
 ```
 

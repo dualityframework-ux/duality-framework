@@ -1,0 +1,152 @@
+{
+ "settings": {
+  "packs": [
+   24
+  ],
+  "min_pair_units": 5,
+  "pair_tolerance": 0.05,
+  "swap_tolerance": 0.2
+ },
+ "patterns": [
+  {
+   "sku": "BAT-5100",
+   "location": "C-15-04",
+   "pattern": "mislocated"
+  },
+  {
+   "sku": "BAT-5100",
+   "location": "C-14-02",
+   "pattern": "mislocated"
+  },
+  {
+   "sku": "ALT-2400",
+   "location": "D-03-01",
+   "pattern": "mislocated"
+  },
+  {
+   "sku": "ALT-2400",
+   "location": "D-21-03",
+   "pattern": "mislocated"
+  },
+  {
+   "sku": "BRK-4410",
+   "location": "F-17-03",
+   "pattern": "empty"
+  },
+  {
+   "sku": "PMP-4100",
+   "location": "A-22-01",
+   "pattern": "empty"
+  },
+  {
+   "sku": "BRK-3301",
+   "location": "E-11-03",
+   "pattern": "transposed"
+  },
+  {
+   "sku": "STR-2500",
+   "location": "B-19-02",
+   "pattern": "timing"
+  },
+  {
+   "sku": "SEN-3200",
+   "location": "F-02-05",
+   "pattern": "timing"
+  },
+  {
+   "sku": "SEN-3100",
+   "location": "D-08-04",
+   "pattern": "found"
+  },
+  {
+   "sku": "SPK-7002",
+   "location": "A-09-04",
+   "pattern": "uom"
+  },
+  {
+   "sku": "CLP-5005",
+   "location": "B-06-02",
+   "pattern": "unexplained"
+  },
+  {
+   "sku": "LMP-9005",
+   "location": "E-12-01",
+   "pattern": "swap"
+  },
+  {
+   "sku": "LMP-9006",
+   "location": "E-12-02",
+   "pattern": "swap"
+  },
+  {
+   "sku": "BRK-4410",
+   "location": "E-01-04",
+   "pattern": "counter"
+  },
+  {
+   "sku": "BLT-8120",
+   "location": "E-09-02",
+   "pattern": "counter"
+  },
+  {
+   "sku": "BLT-8120",
+   "location": "A-16-01",
+   "pattern": "unexplained"
+  },
+  {
+   "sku": "BRK-3301",
+   "location": "F-08-04",
+   "pattern": "counter"
+  },
+  {
+   "sku": "FLT-2210",
+   "location": "F-20-01",
+   "pattern": "counter"
+  },
+  {
+   "sku": "LMP-9005",
+   "location": "E-14-04",
+   "pattern": "counter"
+  },
+  {
+   "sku": "LMP-9006",
+   "location": "B-11-03",
+   "pattern": "counter"
+  },
+  {
+   "sku": "FLT-1042",
+   "location": "C-23-02",
+   "pattern": "counter"
+  },
+  {
+   "sku": "FUS-6010",
+   "location": "B-10-01",
+   "pattern": "counter"
+  },
+  {
+   "sku": "SPK-7001",
+   "location": "D-15-04",
+   "pattern": "counter"
+  },
+  {
+   "sku": "SPK-7001",
+   "location": "B-05-02",
+   "pattern": "unexplained"
+  },
+  {
+   "sku": "FLT-1043",
+   "location": "E-14-01",
+   "pattern": "unexplained"
+  },
+  {
+   "sku": "TPE-7100",
+   "location": "D-24-01",
+   "pattern": "counter"
+  },
+  {
+   "sku": "CLP-5005",
+   "location": "A-05-05",
+   "pattern": "counter"
+  }
+ ]
+}

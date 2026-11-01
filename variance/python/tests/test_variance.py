@@ -148,3 +148,23 @@ def test_sql_finds_uom_errors(con):
 def test_sql_flags_same_counter(con, result):
     df = run_sql.run(con, "counter_rates")
     assert df[df["flagged"] == 1]["counter"].tolist() == result.flagged_counters
+
+
+# ---------------------------------------------------------------- tunable settings
+
+def test_explicit_defaults_change_nothing(result):
+    again = va.analyze(va.load_count(SAMPLE), threshold=1000, recent_days=3, **va.DEFAULTS)
+    assert list(again.variances["pattern"]) == list(result.variances["pattern"])
+
+
+def test_tuned_settings_match_javascript():
+    tuned = json.loads((HERE / "expected_tuned_from_js.json").read_text())
+    r = va.analyze(va.load_count(SAMPLE), threshold=1000, recent_days=3, **tuned["settings"])
+    py = {(x.sku, x.location): x.pattern for x in r.variances.itertuples()}
+    js = {(p["sku"], p["location"]): p["pattern"] for p in tuned["patterns"]}
+    assert py == js
+
+
+def test_unknown_setting_rejected():
+    with pytest.raises(TypeError, match="pair_tol"):
+        va.analyze(va.load_count(SAMPLE), pair_tol=0.2)

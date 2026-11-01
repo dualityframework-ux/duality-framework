@@ -93,6 +93,8 @@ PATTERNS = {
 }
 ORDER = list(PATTERNS)
 PACKS = [6, 8, 10, 12, 16, 20, 24, 25, 36, 48, 50, 100]
+# Detection settings, matching DEFAULTS in ../engine.js.
+DEFAULTS = {"pair_tolerance": 0.15, "swap_tolerance": 0.10, "min_pair_units": 3, "min_uom_units": 5, "packs": PACKS, "counter_min_lines": 8}
 
 
 def aisle_of(loc: str) -> str:
@@ -120,7 +122,12 @@ class Result:
     threshold: float = 1000
 
 
-def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3) -> Result:
+def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3, **settings) -> Result:
+    unknown = set(settings) - set(DEFAULTS)
+    if unknown:
+        raise TypeError(f"unknown settings: {', '.join(sorted(unknown))}")
+    cfg = {**DEFAULTS, **{k: v for k, v in settings.items() if v is not None}}
+    packs = sorted({int(k) for k in cfg["packs"] if int(k) > 1})
     lines = df.copy()
     lines["qty"] = lines["counted"] - lines["system"]
     lines["dollars"] = lines["qty"] * lines["cost"]
@@ -137,10 +144,10 @@ def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3) -> 
         pos = grp[grp["qty"] > 0].sort_values("qty", ascending=False, kind="stable")
         neg = grp[grp["qty"] < 0].sort_values("qty", ascending=True, kind="stable")
         for pi, p in pos.iterrows():
-            if p["qty"] < 3:
+            if p["qty"] < cfg["min_pair_units"]:
                 continue
             for ni, n in neg.iterrows():
-                if open_(ni) and n["location"] != p["location"] and _close(p["qty"], n["qty"], 0.15):
+                if open_(ni) and n["location"] != p["location"] and _close(p["qty"], n["qty"], cfg["pair_tolerance"]):
                     if open_(pi):
                         lines.loc[[pi, ni], "pattern"] = "mislocated"
                         lines.at[pi, "partner"], lines.at[ni, "partner"] = n["location"], p["location"]
@@ -148,10 +155,10 @@ def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3) -> 
 
     # 2. Unit of measure: an exact pack multiple, with at least a 5-unit difference.
     for i, v in var.iterrows():
-        if not open_(i) or v["system"] <= 0 or v["counted"] <= 0 or abs(v["qty"]) < 5:
+        if not open_(i) or v["system"] <= 0 or v["counted"] <= 0 or abs(v["qty"]) < cfg["min_uom_units"]:
             continue
         hi, lo = max(v["system"], v["counted"]), min(v["system"], v["counted"])
-        pack = next((k for k in PACKS if abs(hi / lo - k) < 0.02 * k), None)
+        pack = next((k for k in packs if abs(hi / lo - k) < 0.02 * k), None)
         if pack:
             lines.at[i, "pattern"] = "uom"
             lines.at[i, "note"] = f"{'counted' if v['counted'] > v['system'] else 'system'} is {pack}× the other"
@@ -174,7 +181,7 @@ def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3) -> 
             b = lines.loc[j]
             if not open_(j) or a["sku"] == b["sku"] or (a["qty"] > 0) == (b["qty"] > 0):
                 continue
-            if aisle_of(a["location"]) != aisle_of(b["location"]) or not _close(a["qty"], b["qty"], 0.1) or abs(a["qty"]) < 2:
+            if aisle_of(a["location"]) != aisle_of(b["location"]) or not _close(a["qty"], b["qty"], cfg["swap_tolerance"]) or abs(a["qty"]) < 2:
                 continue
             lines.loc[[i, j], "pattern"] = "swap"
             lines.at[i, "partner"] = f"{b['sku']} at {b['location']}"
@@ -210,7 +217,7 @@ def analyze(df: pd.DataFrame, threshold: float = 1000, recent_days: int = 3) -> 
                 .groupby("counter", sort=False).agg(lines=("qty", "size"), variances=("is_var", "sum"), gross=("abs_dollars", "sum")).reset_index())
     counters["rate"] = counters["variances"] / counters["lines"]
     team_rate = (has_counter["qty"] != 0).mean() if len(has_counter) else 0.0
-    flagged = counters[(counters["lines"] >= 8) & (counters["rate"] >= max(2 * team_rate, team_rate + 0.1))]["counter"].tolist()
+    flagged = counters[(counters["lines"] >= cfg["counter_min_lines"]) & (counters["rate"] >= max(2 * team_rate, team_rate + 0.1))]["counter"].tolist()
     for i in var.index:
         if open_(i) and lines.at[i, "counter"] in flagged:
             lines.at[i, "pattern"] = "counter"
@@ -292,8 +299,14 @@ def main(argv=None) -> None:
     ap.add_argument("--threshold", type=float, default=1000, help="dollar threshold for a written root cause")
     ap.add_argument("--recent-days", type=int, default=3, help="movement this close to the count counts as timing")
     ap.add_argument("--out", help="write the markdown report here instead of printing it")
+    ap.add_argument("--packs", help="comma-separated pack sizes for unit-of-measure checks, e.g. 6,12,24")
+    ap.add_argument("--pair-tolerance", type=float, help="how close offsetting quantities must be, e.g. 0.15 for 15%%")
+    ap.add_argument("--swap-tolerance", type=float, help="same, for look-alike swaps")
+    ap.add_argument("--min-pair-units", type=float, help="smallest overage that counts as half of a mislocation")
     a = ap.parse_args(argv)
-    text = report(analyze(load_count(a.csv), a.threshold, a.recent_days))
+    settings = {"packs": [int(x) for x in a.packs.split(",")] if a.packs else None,
+                "pair_tolerance": a.pair_tolerance, "swap_tolerance": a.swap_tolerance, "min_pair_units": a.min_pair_units}
+    text = report(analyze(load_count(a.csv), a.threshold, a.recent_days, **settings))
     if a.out:
         with open(a.out, "w", encoding="utf-8") as f:
             f.write(text + "\n")

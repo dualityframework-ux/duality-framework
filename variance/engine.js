@@ -131,6 +131,8 @@
   };
   const ORDER = ["mislocated", "uom", "transposed", "swap", "timing", "empty", "found", "counter", "unexplained"];
   const PACKS = [6, 8, 10, 12, 16, 20, 24, 25, 36, 48, 50, 100];
+  // Detection settings. Defaults reflect one distribution center's experience; every building can tune them.
+  const DEFAULTS = { pairTolerance: 0.15, swapTolerance: 0.10, minPairUnits: 3, minUomUnits: 5, packs: PACKS, counterMinLines: 8 };
 
   const aisleOf = loc => { const p = String(loc).split(/[-_.\s]/).filter(Boolean); return p.length > 1 ? p.slice(0, p.length > 2 ? 2 : 1).join("-") : p[0] || ""; };
   const close = (a, b, tol = 0.1) => Math.abs(Math.abs(a) - Math.abs(b)) <= tol * Math.max(Math.abs(a), Math.abs(b));
@@ -138,6 +140,8 @@
   // ---------- analysis ----------
   function analyze(records, opts = {}) {
     const threshold = opts.threshold ?? 1000, recentDays = opts.recentDays ?? 3;
+    const cfg = { ...DEFAULTS, ...Object.fromEntries(Object.entries(opts).filter(([k, v]) => k in DEFAULTS && v != null)) };
+    const packs = [...new Set((cfg.packs || []).map(Number).filter(n => n > 1))].sort((a, b) => a - b);
     const lines = records.map(r => {
       const qty = r.counted - r.system;
       return { ...r, qty, dollars: qty * r.cost, bookValue: Math.max(r.system, 0) * r.cost, pattern: null, partner: null, note: "" };
@@ -151,15 +155,15 @@
       const pos = list.filter(v => v.qty > 0).sort((a, b) => b.qty - a.qty);
       const neg = list.filter(v => v.qty < 0).sort((a, b) => a.qty - b.qty);
       for (const p of pos) {
-        const n = p.qty >= 3 && neg.find(n => !n.pattern && n.location !== p.location && close(p.qty, n.qty, 0.15));
+        const n = p.qty >= cfg.minPairUnits && neg.find(n => !n.pattern && n.location !== p.location && close(p.qty, n.qty, cfg.pairTolerance));
         if (n && !p.pattern) { p.pattern = n.pattern = "mislocated"; p.partner = n.location; n.partner = p.location; }
       }
     }
     // 2. UOM: exact pack multiple
     for (const v of vars) {
-      if (v.pattern || v.system <= 0 || v.counted <= 0 || Math.abs(v.qty) < 5) continue;
+      if (v.pattern || v.system <= 0 || v.counted <= 0 || Math.abs(v.qty) < cfg.minUomUnits) continue;
       const hi = Math.max(v.system, v.counted), lo = Math.min(v.system, v.counted), r = hi / lo;
-      const pack = PACKS.find(k => Math.abs(r - k) < 0.02 * k);
+      const pack = packs.find(k => Math.abs(r - k) < 0.02 * k);
       if (pack) { v.pattern = "uom"; v.note = `${v.counted > v.system ? "counted" : "system"} is ${pack}× the other`; }
     }
     // 3. Transposed digits
@@ -175,7 +179,7 @@
       for (let j = i + 1; j < open.length && j < 4000; j++) {
         const b = open[j];
         if (b.pattern || a.sku === b.sku || Math.sign(a.qty) === Math.sign(b.qty)) continue;
-        if (aisleOf(a.location) !== aisleOf(b.location) || !close(a.qty, b.qty, 0.1) || Math.abs(a.qty) < 2) continue;
+        if (aisleOf(a.location) !== aisleOf(b.location) || !close(a.qty, b.qty, cfg.swapTolerance) || Math.abs(a.qty) < 2) continue;
         a.pattern = b.pattern = "swap"; a.partner = `${b.sku} at ${b.location}`; b.partner = `${a.sku} at ${a.location}`; break;
       }
     }
@@ -199,7 +203,7 @@
     const counterList = Object.values(counters).map(c => ({ ...c, rate: c.variances / c.lines }));
     const withCounter = lines.filter(l => l.counter);
     const teamRate = withCounter.length ? withCounter.filter(l => l.qty).length / withCounter.length : 0;
-    const flaggedCounters = new Set(counterList.filter(c => c.lines >= 8 && c.rate >= Math.max(2 * teamRate, teamRate + 0.1)).map(c => c.counter));
+    const flaggedCounters = new Set(counterList.filter(c => c.lines >= cfg.counterMinLines && c.rate >= Math.max(2 * teamRate, teamRate + 0.1)).map(c => c.counter));
     for (const v of vars) if (!v.pattern && flaggedCounters.has(v.counter)) v.pattern = "counter";
     for (const v of vars) if (!v.pattern) v.pattern = "unexplained";
 
@@ -223,7 +227,7 @@
     let run = 0; const pareto = ranked.map(v => { run += Math.abs(v.dollars); return { ...v, cumShare: gross ? run / gross : 0 }; });
     const for80 = pareto.findIndex(p => p.cumShare >= 0.8) + 1;
 
-    return { lines, variances: ranked, summary, byPattern, pareto, for80, counters: counterList.sort((a, b) => b.rate - a.rate), teamRate, flaggedCounters: [...flaggedCounters], threshold };
+    return { lines, variances: ranked, summary, byPattern, pareto, for80, counters: counterList.sort((a, b) => b.rate - a.rate), teamRate, flaggedCounters: [...flaggedCounters], threshold, settings: { ...cfg, packs } };
   }
 
   // ---------- drafted audit explanation (observation → mechanism → implication) ----------
@@ -331,6 +335,6 @@
     return toCSV(rows);
   }
 
-  const api = { parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
+  const api = { DEFAULTS, parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.VarianceEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

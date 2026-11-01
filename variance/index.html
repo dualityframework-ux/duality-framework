@@ -98,6 +98,11 @@ tr.hot td{background:var(--bad-soft)}
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 .map{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
 .note{font-size:.84rem;color:var(--muted)}
+.settings{border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
+.settings summary{cursor:pointer;font-weight:600;font-size:.9rem}
+.settings[open]{display:flex;flex-direction:column;gap:10px}
+.settings input[type=number]{width:100%}
+.settings input[type=text]{color:var(--ink);background:var(--bg);border:1px solid var(--rule-2);border-radius:7px;padding:8px 10px;min-width:0}
 .err{color:var(--bad);font-weight:600}
 footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:6px}
 .check{display:flex;gap:8px;align-items:center;font-size:.88rem;padding-bottom:8px}
@@ -137,6 +142,19 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
       <div class="field"><label for="thr">Write-up threshold</label><input id="thr" type="number" min="0" step="50" value="1000"></div>
       <div class="field"><label for="days">Recent movement (days)</label><input id="days" type="number" min="0" max="30" step="1" value="3"></div>
     </div>
+    <details id="settings" class="settings">
+      <summary>Detection settings</summary>
+      <p class="note">Tune the checks to your building. Changes re-run the analysis right away and reset when you leave the page.</p>
+      <div class="map">
+        <div class="field"><label for="s-pairTolerance">Mislocation match (%)</label><input id="s-pairTolerance" type="number" min="0" max="50" step="1" data-s="pairTolerance" data-pct="1"></div>
+        <div class="field"><label for="s-minPairUnits">Smallest mislocation (units)</label><input id="s-minPairUnits" type="number" min="1" step="1" data-s="minPairUnits"></div>
+        <div class="field"><label for="s-swapTolerance">Swap match (%)</label><input id="s-swapTolerance" type="number" min="0" max="50" step="1" data-s="swapTolerance" data-pct="1"></div>
+        <div class="field"><label for="s-minUomUnits">Smallest UOM error (units)</label><input id="s-minUomUnits" type="number" min="1" step="1" data-s="minUomUnits"></div>
+        <div class="field"><label for="s-counterMinLines">Counter needs at least (lines)</label><input id="s-counterMinLines" type="number" min="1" step="1" data-s="counterMinLines"></div>
+        <div class="field" style="grid-column:1/-1"><label for="s-packs">Pack sizes for UOM checks</label><input id="s-packs" type="text" inputmode="numeric" data-s="packs" style="width:100%;font-family:var(--f-num)"></div>
+      </div>
+      <div><button class="tiny ghost" id="resetSettings">Reset to defaults</button></div>
+    </details>
     <div id="pasteBox" hidden>
       <textarea id="paste" aria-label="Paste CSV" placeholder="location,sku,system_qty,counted_qty,unit_cost&#10;A-01-01,FLT-1042,24,24,6.85"></textarea>
       <div><button class="tiny" id="pasteGo">Analyze pasted data</button></div>
@@ -164,6 +182,8 @@ const pct = n => n == null ? "—" : (n*100).toFixed(2) + "%";
 const qtyS = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en-US");
 
 let raw = null, map = null, result = null, filter = null, source = "", recountMin = 25, blind = true;
+let settings = { ...E.DEFAULTS };
+function fillSettings(){ document.querySelectorAll("[data-s]").forEach(el => { const v = settings[el.dataset.s]; el.value = el.dataset.s === "packs" ? v.join(", ") : el.dataset.pct ? Math.round(v*100) : v; }); }
 
 function toast(m){ const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),1800); }
 
@@ -189,7 +209,7 @@ function showMapping(missing){
 function run(){
   const { records, skipped } = E.buildRecords(raw.rows, map);
   if (!records.length){ $("#msg").innerHTML = '<span class="err">No rows had a SKU, location, both quantities and a unit cost. Check the column matching.</span>'; showMapping(); return; }
-  result = E.analyze(records, { threshold: +$("#thr").value || 0, recentDays: +$("#days").value || 0 });
+  result = E.analyze(records, { threshold: +$("#thr").value || 0, recentDays: +$("#days").value || 0, ...settings });
   filter = null;
   $("#msg").innerHTML = `Analyzed <b>${records.length.toLocaleString()}</b> lines from ${esc(source)}.` + (skipped.length ? ` Skipped ${skipped.length} incomplete row${skipped.length>1?"s":""} (line ${skipped.slice(0,5).join(", ")}${skipped.length>5?"…":""}).` : "") + ` <button class="tiny ghost" id="remap">Check column matching</button>`;
   render();
@@ -314,6 +334,7 @@ document.addEventListener("click", e => {
   else if (t.dataset.p !== undefined && result) { filter = t.dataset.p ? (filter === t.dataset.p && t.classList.contains("cause") ? null : t.dataset.p) : null; render(); }
   else if (t.dataset.copy !== undefined) { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(E.explain(f[+t.dataset.copy]).text); }
   else if (t.id === "copyAll") { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(f.map(v => E.explain(v).text).join("\n\n")); }
+  else if (t.id === "resetSettings") { settings = { ...E.DEFAULTS }; fillSettings(); if (raw && map) run(); toast("Settings reset"); }
   else if (t.id === "export") exportCSV();
   else if (t.id === "sampleDl") download(E.sampleCSV(), "variance-sample-count.csv");
   else if (t.id === "printRc") { document.body.classList.add("print-recount"); window.print(); setTimeout(()=>document.body.classList.remove("print-recount"), 500); }
@@ -325,10 +346,17 @@ document.addEventListener("click", e => {
 $("#file").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => load(rd.result, f.name); rd.readAsText(f); e.target.value = ""; });
 ["#thr","#days"].forEach(id => $(id).addEventListener("change", () => { if (raw && map) run(); }));
 document.addEventListener("change", e => {
+  const k = e.target.dataset && e.target.dataset.s;
+  if (k) {
+    if (k === "packs") { const list = e.target.value.split(/[^0-9]+/).map(Number).filter(n => n > 1); settings.packs = list.length ? list : [...E.DEFAULTS.packs]; }
+    else { const n = parseFloat(e.target.value); if (isFinite(n) && n >= 0) settings[k] = e.target.dataset.pct ? n/100 : n; }
+    fillSettings(); if (raw && map) run(); return;
+  }
   if (e.target.id === "rcMin") { recountMin = Math.max(0, +e.target.value || 0); render(); $("#rcMin").focus(); }
   if (e.target.id === "blind") { blind = e.target.checked; render(); $("#blind").focus(); }
 });
 
+fillSettings();
 load(E.sampleCSV(), "the sample count");
 })();
 </script>

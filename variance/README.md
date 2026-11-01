@@ -27,6 +27,10 @@ Each variance line is tested in this order and takes the first match:
 | Found stock | Stock where the system shows none | Check unposted receipts and transfers |
 | Counter accuracy | The counter's variance rate is well above the team's | Recount with a different counter |
 
+## Settings
+
+The matching rules are tunable per building, in the page's **Detection settings** panel or as options to `analyze()` / flags on the Python CLI: mislocation and swap match tolerance, the smallest quantity that counts as a mislocation or a UOM error, the pack sizes checked for UOM errors, and how many lines a counter needs before their rate is judged.
+
 ## Input
 
 A CSV with one row per counted location. Required: SKU, location, system quantity, counted quantity, unit cost. Optional but useful: description, counter, count date, last movement date. Common header names are matched automatically, and anything else can be matched by hand.

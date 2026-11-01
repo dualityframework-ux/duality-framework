@@ -54,6 +54,16 @@ assert.ok(rc.rows.every(x => x.reason), "every recount row has a reason");
 const locs = rc.rows.map(x => x.location);
 assert.deepStrictEqual([...new Set(locs)], E.walkingOrder([...new Set(locs)]), "recount rows follow walking order");
 
+// settings: defaults change nothing; tuning changes detection the expected way
+const same = E.analyze(records, { threshold: 1000, recentDays: 3, ...E.DEFAULTS });
+assert.deepStrictEqual(same.variances.map(v => v.pattern), r.variances.map(v => v.pattern), "explicit defaults match");
+const no12 = E.analyze(records, { packs: [24] });
+assert.notStrictEqual(no12.variances.find(v => v.sku === "CLP-5005" && v.location === "B-06-02").pattern, "uom", "pack 12 removed");
+assert.strictEqual(no12.variances.find(v => v.sku === "SPK-7002").pattern, "uom", "pack 24 still found");
+const strictPairs = E.analyze(records, { minPairUnits: 5 });
+assert.notStrictEqual(strictPairs.variances.find(v => v.sku === "BLT-8120").pattern, "mislocated", "3-unit pair ignored at minimum 5");
+assert.strictEqual(strictPairs.variances.find(v => v.sku === "BAT-5100" && v.location === "C-14-02").pattern, "mislocated", "12-unit pair still found");
+
 console.log("all checks passed");
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),
