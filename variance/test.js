@@ -108,6 +108,24 @@ for (const altered of [
   const checked = E.attachEvidence(E.analyze(records), altered);
   assert.ok(checked.variances.filter(v=>v.sku === "BAT-5100").every(v=>v.evidence.status !== "confirmed"));
 }
+// ABC value classes: worked by hand, then checked for consistency on the sample.
+const line = (sku, value) => ({ sku, bookValue: value });
+assert.deepStrictEqual(E.abcClasses([line("X", 85), line("Y", 10), line("Z", 5)]), { X: "A", Y: "B", Z: "C" }, "85/10/5 splits A/B/C");
+assert.deepStrictEqual(E.abcClasses([line("X", 70), line("Y", 20), line("Z", 10)]), { X: "A", Y: "A", Z: "B" }, "the SKU that crosses 80% is still A");
+assert.deepStrictEqual(E.abcClasses([line("X", 30), line("X", 50), line("Y", 20)]), { X: "A", Y: "B" }, "a SKU's locations are summed");
+assert.deepStrictEqual(E.abcClasses([line("X", 90), line("B2", 5), line("A1", 5)]), { X: "A", A1: "B", B2: "C" }, "ties break by SKU");
+assert.deepStrictEqual(E.abcClasses([line("X", 0)]), { X: "C" }, "no book value means C");
+assert.strictEqual(r.abc.reduce((t, c) => t + c.lines, 0), s.lines, "every line has a class");
+assert.strictEqual(r.abc.reduce((t, c) => t + c.varianceLines, 0), s.varianceLines);
+assert.ok(Math.abs(r.abc.reduce((t, c) => t + c.gross, 0) - s.gross) < 1e-6, "class gross adds up");
+assert.ok(Math.abs(r.abc.reduce((t, c) => t + c.bookShare, 0) - 1) < 1e-12, "book shares add to 100%");
+const skuValue = {}; r.lines.forEach(l => { skuValue[l.sku] = (skuValue[l.sku] || 0) + l.bookValue; });
+const lowest = k => Math.min(...r.lines.filter(l => l.abc === k).map(l => skuValue[l.sku]));
+const highest = k => Math.max(...r.lines.filter(l => l.abc === k).map(l => skuValue[l.sku]));
+assert.ok(lowest("A") >= highest("B") && lowest("B") >= highest("C"), "classes follow value");
+assert.ok(r.abc[0].bookShare >= E.ABC_CUTS.A, "A covers at least 80% of value");
+assert.ok(r.variances.every(v => "ABC".includes(v.abc)), "variance lines carry their class");
+
 console.log("all checks passed");
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),

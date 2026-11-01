@@ -138,6 +138,25 @@
   const close = (a, b, tol = 0.1) => Math.abs(Math.abs(a) - Math.abs(b)) <= tol * Math.max(Math.abs(a), Math.abs(b));
 
   // ---------- analysis ----------
+  // ---------- ABC value classes ----------
+  // Rank SKUs by book value (system quantity x cost, summed over their locations). A is the SKUs that make up
+  // the first 80% of value, B the next 15%, C the rest. A SKU is classed by where its value starts, so the SKU
+  // that crosses 80% is still an A. A count file has no usage history, so this uses book value as the stand-in.
+  const ABC_CUTS = { A: 0.8, B: 0.95 };
+  function abcClasses(lines) {
+    const value = new Map(); // a Map keeps insertion order even for number-like SKUs, matching the Python port
+    lines.forEach(l => value.set(l.sku, (value.get(l.sku) || 0) + l.bookValue));
+    const total = [...value.values()].reduce((t, v) => t + v, 0);
+    const skus = [...value.keys()].sort((a, b) => value.get(b) - value.get(a) || (a < b ? -1 : a > b ? 1 : 0));
+    const out = {}; let run = 0;
+    for (const sku of skus) {
+      const start = total ? run / total : 1;
+      out[sku] = start < ABC_CUTS.A ? "A" : start < ABC_CUTS.B ? "B" : "C";
+      run += value.get(sku);
+    }
+    return out;
+  }
+
   function analyze(records, opts = {}) {
     const threshold = opts.threshold ?? 1000, recentDays = opts.recentDays ?? 3;
     const cfg = { ...DEFAULTS, ...Object.fromEntries(Object.entries(opts).filter(([k, v]) => k in DEFAULTS && v != null)) };
@@ -147,6 +166,8 @@
       return { ...r, qty, dollars: qty * r.cost, bookValue: Math.max(r.system, 0) * r.cost, pattern: null, partner: null, note: "" };
     });
     const vars = lines.filter(l => l.qty !== 0);
+    const abcOf = abcClasses(lines);
+    lines.forEach(l => { l.abc = abcOf[l.sku]; });
 
     // 1. Mislocated: same SKU, opposite signs, similar size, different locations
     const bySku = {};
@@ -226,8 +247,15 @@
     const ranked = [...vars].sort((a, b) => Math.abs(b.dollars) - Math.abs(a.dollars));
     let run = 0; const pareto = ranked.map(v => { run += Math.abs(v.dollars); return { ...v, cumShare: gross ? run / gross : 0 }; });
     const for80 = pareto.findIndex(p => p.cumShare >= 0.8) + 1;
+    const abc = ["A", "B", "C"].map(k => {
+      const ls = lines.filter(l => l.abc === k), vs = ls.filter(l => l.qty !== 0);
+      const b = ls.reduce((t, l) => t + l.bookValue, 0), g = vs.reduce((t, v) => t + Math.abs(v.dollars), 0);
+      return { cls: k, skus: new Set(ls.map(l => l.sku)).size, lines: ls.length, varianceLines: vs.length,
+        bookValue: b, bookShare: book ? b / book : 0, gross: g, grossShare: gross ? g / gross : 0,
+        grossAccuracy: b ? 1 - g / b : null, locationAccuracy: ls.length ? 1 - vs.length / ls.length : null };
+    });
 
-    return { lines, variances: ranked, summary, byPattern, pareto, for80, counters: counterList.sort((a, b) => b.rate - a.rate), teamRate, flaggedCounters: [...flaggedCounters], threshold, settings: { ...cfg, packs } };
+    return { lines, variances: ranked, summary, byPattern, pareto, for80, abc, counters: counterList.sort((a, b) => b.rate - a.rate), teamRate, flaggedCounters: [...flaggedCounters], threshold, settings: { ...cfg, packs } };
   }
 
   // ---------- drafted audit explanation (observation → mechanism → implication) ----------
@@ -500,6 +528,6 @@
     return toCSV([H, ...body]);
   }
 
-  const api = { DEFAULTS, parseTransactions, attachEvidence, sampleTransactionsCSV, compareCounts, samplePriorCSV, parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
+  const api = { DEFAULTS, ABC_CUTS, abcClasses, parseTransactions, attachEvidence, sampleTransactionsCSV, compareCounts, samplePriorCSV, parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.VarianceEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

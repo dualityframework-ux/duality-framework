@@ -291,3 +291,38 @@ def test_sql_requires_matching_transfer_quantity_and_date(change):
     else:
         con.execute("UPDATE transactions SET date='2026-11-10' WHERE sku='BAT-5100'")
     assert run_sql.run(con, "confirmed_mislocations").empty
+
+
+# ---------------------------------------------------------------- ABC value classes
+
+ABC_EXPECTED = json.loads((HERE / "expected_abc_from_js.json").read_text())
+
+
+def _frame(pairs):
+    return pd.DataFrame({"sku": [p[0] for p in pairs], "book_value": [p[1] for p in pairs]})
+
+
+@pytest.mark.parametrize("pairs,expected", [
+    ([("X", 85), ("Y", 10), ("Z", 5)], {"X": "A", "Y": "B", "Z": "C"}),
+    ([("X", 70), ("Y", 20), ("Z", 10)], {"X": "A", "Y": "A", "Z": "B"}),
+    ([("X", 30), ("X", 50), ("Y", 20)], {"X": "A", "Y": "B"}),
+    ([("X", 90), ("B2", 5), ("A1", 5)], {"X": "A", "A1": "B", "B2": "C"}),
+    ([("X", 0)], {"X": "C"}),
+])
+def test_abc_rule_matches_hand_examples(pairs, expected):
+    assert va.abc_classes(_frame(pairs)) == expected
+
+
+def test_abc_classes_match_javascript(result):
+    assert dict(zip(result.lines["sku"], result.lines["abc"])) == ABC_EXPECTED["classes"]
+
+
+@pytest.mark.parametrize("key", ["skus", "lines", "varianceLines", "bookValue", "bookShare", "gross", "grossShare", "grossAccuracy", "locationAccuracy"])
+def test_abc_summary_matches_javascript(result, key):
+    for py, js in zip(result.abc, ABC_EXPECTED["abc"]):
+        assert py["cls"] == js["cls"]
+        assert py[key] == pytest.approx(js[key], rel=1e-9)
+
+
+def test_abc_in_report(result):
+    assert "## Accuracy by value class" in va.report(result)
