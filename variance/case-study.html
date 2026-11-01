@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Variance case study — automating the weekly variance write-up</title>
-<meta name="description" content="How I turned the weekly cycle count variance write-up into a tool: measure, prioritize by dollars, classify the root cause, and draft the explanation.">
+<meta name="description" content="An inventory investigation case study: identify the largest discrepancies, verify likely causes and distinguish sample results from proven operational impact.">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Variance case study — automating the weekly variance write-up">
-<meta property="og:description" content="Measure, prioritize by dollars, classify the root cause, draft the explanation. By Ian Kachadorian.">
+<meta property="og:description" content="Find the discrepancies worth investigating, verify the evidence, and choose the next action. A synthetic inventory case study by Ian Kachadorian.">
 <meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/variance/preview.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23facc15'/%3E%3Cpath d='M18 18l14 30 14-30' fill='none' stroke='%231c1917' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
@@ -73,12 +73,21 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
 
   <p class="eyebrow">Case study</p>
   <h1>Automating the weekly variance write-up</h1>
-  <p class="dek">How I turned the most repetitive part of inventory control, explaining why the count was off, into a tool that does the first pass.</p>
+  <p class="dek">How I use count data to prioritize inventory investigations, suggest causes to verify, and draft the next action.</p>
   <div class="meta"><span>Ian Kachadorian</span><span>October 2026</span><span>6 min read</span></div>
+
+  <section class="callout" aria-labelledby="decision-summary">
+    <h2 id="decision-summary" style="margin-top:0">The finding and the decision</h2>
+    <p><b>Finding:</b> in the synthetic sample, overages and shortages largely cancel in the net accuracy measure. Gross variance reveals discrepancies that still need investigation. Comparing counts also surfaces recurring discrepancies at the same locations.</p>
+    <p><b>Recommended action:</b> investigate the largest dollar differences first. Recount the affected locations and review movement records before accepting a suggested cause or posting an adjustment. For recurring pairs, review the replenishment process as well as the current count.</p>
+    <p><b>What this demonstrates:</b> a repeatable investigation workflow, implemented in JavaScript, Python and SQL. The sample checks that the rules behave as intended; it does not establish accuracy on unfamiliar counts, time saved or reduced inventory loss.</p>
+    <p><a href="./">Explore the sample</a> · <a href="../notes/variance-sql.html">Inspect the SQL analysis</a></p>
+  </section>
 
   <nav class="contents" aria-label="On this page">
     <p>On this page</p>
     <ul>
+      <li><a href="#decision-summary">Summary</a></li>
       <li><a href="#problem">Problem</a></li>
       <li><a href="#approach">Approach</a></li>
       <li><a href="#result">Result</a></li>
@@ -108,7 +117,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
     <div class="stat" role="listitem"><div class="v">94.32%</div><div class="k">Gross accuracy on the same count</div></div>
     <div class="stat" role="listitem"><div class="v">$11,562</div><div class="k">Gross variance behind a $2,006 net</div></div>
   </div>
-  <p>A 99% net looks clean. The gross number shows more than $11,000 of stock sitting in the wrong place or recorded wrong.</p>
+  <p>A 99% net looks clean. The gross number shows more than $11,000 of absolute discrepancies to investigate; the count alone does not establish their causes.</p>
 
   <h3>2. Prioritize by dollars</h3>
   <p>A Pareto view ranks every line by absolute dollar impact. In the sample, 9 of 28 variance lines account for 80% of the gross. Those get looked at first.</p>
@@ -119,7 +128,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
     <thead><tr><th>Order</th><th>Cause</th><th>Why it comes here</th></tr></thead>
     <tbody>
       <tr><td class="r">1</td><td>Mislocated stock</td><td>A battery short at <span class="loc">C-14-02</span> and over at <span class="loc">C-15-04</span> is one move, not an empty slot and a found slot. Checking pairs first prevents two wrong write-ups.</td></tr>
-      <tr><td class="r">2</td><td>Unit of measure</td><td>An exact pack multiple, like 300 against 25, is unambiguous. Requiring a difference of at least 5 units keeps small miscounts out.</td></tr>
+      <tr><td class="r">2</td><td>Unit of measure</td><td>An exact pack multiple, like 300 against 25, suggests a unit-of-measure issue to verify against the packaging and item setup. Requiring a difference of at least 5 units keeps small miscounts out.</td></tr>
       <tr><td class="r">3</td><td>Transposed digits</td><td>Same digits, different order. Only checked for two-digit quantities and up.</td></tr>
       <tr><td class="r">4</td><td>Look-alike swap</td><td>Two different SKUs in the same aisle, off by about the same amount in opposite directions.</td></tr>
       <tr><td class="r">5</td><td>Timing</td><td>Movement within a few days of the count, so a transaction may not have posted.</td></tr>
@@ -133,7 +142,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
   <div class="oim">
     <p><b>Observation.</b> BAT-5100 (Battery, group 24F) at C-14-02: system 18, counted 6, a variance of −12 units (−$1,704.00).</p>
     <p><b>Mechanism.</b> The same item is short in one location and over by about the same amount in another, which points to a put-away or replenishment move that went to the wrong slot. The offsetting variance is at C-15-04.</p>
-    <p><b>Implication.</b> Move the stock back to its home location and correct both locations in one transfer, not two adjustments. Review the put-away that touched both slots.</p>
+    <p><b>Implication.</b> Recount both locations and review the movement history. If the mislocation is confirmed, correct the locations through the appropriate transfer process and review the put-away that touched both slots.</p>
   </div>
 
   <h2 id="result">The result</h2>
