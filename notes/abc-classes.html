@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The lowest-value 5% of stock was the least accurate · Duality</title>
+<meta name="description" content="ABC value classes on one sample count: A items hold 82% of the value and 85% of the gross variance, but C items are the least accurate, mostly from one misclassed item and two unit-of-measure errors.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The lowest-value 5% of stock was the least accurate">
+<meta property="og:description" content="What ABC value classes show about a cycle count, with a worked example. By Ian Kachadorian.">
+<meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/variance/preview.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://dualityframework-ux.github.io/duality-framework/notes/abc-classes.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<style>
+/* Layout: a single readable column in the Duality palette; numbers in mono */
+:root{color-scheme:dark;--bg:#0a0a11;--surface:#15131e;--line:#302b3b;--fg:#f4f2ff;--muted:#aaa7bb;--accent:#ad91ff;--good:#7fd1a8;--bad:#f2a0a0;
+  --f-body:system-ui,-apple-system,"Segoe UI",sans-serif;--f-num:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.7 var(--f-body)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.wrap{max-width:42rem;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:28px 72px}
+.crumb{font-size:.88rem;color:var(--muted)}
+.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.18em;font-size:.74rem;font-weight:700;margin:40px 0 8px}
+h1{font-size:clamp(2rem,6vw,2.8rem);line-height:1.08;letter-spacing:-.035em;margin:0 0 14px;text-wrap:balance}
+.dek{color:var(--muted);font-size:1.15rem;margin:0 0 18px}
+.meta{font-size:.86rem;color:var(--muted);padding-bottom:22px;border-bottom:1px solid var(--line)}
+h2{font-size:1.35rem;letter-spacing:-.02em;margin:40px 0 10px;text-wrap:balance}
+p{margin:0 0 16px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:.92em}
+.formula{font-family:var(--f-num);font-size:.92rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0 18px;overflow-x:auto;white-space:pre}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.compare>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.compare .v{font-family:var(--f-num);font-size:2rem;font-weight:700;letter-spacing:-.02em}
+.compare .k{color:var(--muted);font-size:.9rem}
+.scroll{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th{text-align:left;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--muted)}
+td{padding:8px 6px;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.callout{border-left:3px solid var(--accent);background:var(--surface);border-radius:8px;padding:14px 16px;margin:20px 0}
+.callout p:last-child{margin:0}
+.end{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.95rem}
+@media(max-width:520px){.compare{grid-template-columns:1fr}.formula{font-size:.78rem}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="crumb" aria-label="Breadcrumb"><a href="../">Duality</a> / <a href="../#notes">Notes</a></nav>
+  <p class="eyebrow">Note</p>
+  <h1>The lowest-value 5% of stock was the least accurate</h1>
+  <p class="dek">Sorting a count into A, B and C value classes shows where the dollars are. It also shows where the cheap mistakes hide.</p>
+  <p class="meta">Ian Kachadorian · November 2026 · 3 min read</p>
+
+  <h2>A few items hold most of the value</h2>
+  <p>ABC classification ranks items by value and splits them into three groups. A is the small set that makes up the first 80% of value, B the next 15%, and C everything else. The usual advice follows from it: count A items most often, because that is where the money is.</p>
+  <p>Run <a href="../variance/">Variance</a>'s sample count, 164 locations and $203,651.85 on the books, and the split is lopsided in the expected way. Of the 27 SKUs, 9 hold 82% of the value.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Class</th><th class="r">SKUs</th><th class="r">Share of book</th><th class="r">Gross variance</th><th class="r">Gross accuracy</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td class="r">9</td><td class="r">82.20%</td><td class="r">$9,771.40</td><td class="r">94.16%</td></tr>
+      <tr><td>B</td><td class="r">7</td><td class="r">12.84%</td><td class="r">$577.80</td><td class="r">97.79%</td></tr>
+      <tr><td>C</td><td class="r">11</td><td class="r">4.96%</td><td class="r">$1,213.05</td><td class="r">87.99%</td></tr>
+    </tbody>
+  </table></div>
+  <p>Gross accuracy is 1 − variance dollars ÷ book value, with overs and shorts both counted as errors. (The <a href="gross-vs-net.html">gross vs. net note</a> explains why.)</p>
+
+  <h2>A: where the dollars are</h2>
+  <p>A items carry 85% of the gross variance, which is what you would expect from 82% of the value. Most of it is two mislocated pairs: a battery and an alternator, each short in one slot and over by the same amount in another. Those four lines are $6,054, or 62% of A's gross. A items also have the most locations off: 11 of 55. Counting them often is worth it.</p>
+
+  <h2>C: where the mistakes are cheap but common</h2>
+  <p>The surprise is C. It holds under 5% of the value but has the lowest gross accuracy, at 87.99%. Two things explain almost all of it.</p>
+  <p><b>An expensive item in the cheap class.</b> A remanufactured starter costs $164, but only 7 were on the books, so its total value of $1,148 puts it in C. It counted 3, and the stock had moved just before the count. That one line is −$656, or 54% of C's gross variance. Ranking by book value measures what is sitting on the shelf, not what moves. A full ABC study ranks by annual usage value instead; a count file doesn't carry usage, so Variance uses book value and says so.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Item</th><th class="r">System</th><th class="r">Counted</th><th class="r">Dollars</th></tr></thead>
+    <tbody>
+      <tr><td>Spark plug, copper</td><td class="r">4</td><td class="r">96</td><td class="r pos">+$271.40</td></tr>
+      <tr><td>Hose clamp, 5/8 in</td><td class="r">300</td><td class="r">25</td><td class="r neg">−$233.75</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Units of measure.</b> 96 is exactly 24 times 4, and 300 is exactly 12 times 25. Someone counted boxes as eaches, or eaches as boxes. These two lines are $505.15, another 42% of C's gross. The starter and these two lines together are 96% of it.</p>
+
+  <div class="callout"><p><b>The takeaway:</b> count A items most often, because that is where the dollars are. But C errors are often setup problems, like a pack size or a unit of measure, and those come back every count until someone fixes the item record. Counting C items more often won't fix them. Fixing the cause once will.</p></div>
+
+  <h2>Two checks worth running</h2>
+  <p>First, look for expensive items in C. A high unit cost with low stock on hand is either an item that rarely moves or one that is about to run out, and both deserve a look. Second, sort C variances by cause. If unit-of-measure errors lead, the fix is in the item master, not on the floor.</p>
+
+  <p class="end">The numbers here come from Variance's synthetic sample count. See the classes for yourself under "Accuracy by value class" in <a href="../variance/">Variance</a>, or read how the tool works in the <a href="../variance/case-study.html">case study</a>.</p>
+</main>
+</body>
+</html>

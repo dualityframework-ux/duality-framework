@@ -126,6 +126,23 @@ assert.ok(lowest("A") >= highest("B") && lowest("B") >= highest("C"), "classes f
 assert.ok(r.abc[0].bookShare >= E.ABC_CUTS.A, "A covers at least 80% of value");
 assert.ok(r.variances.every(v => "ABC".includes(v.abc)), "variance lines carry their class");
 
+// The ABC note quotes these figures; recompute them so the note can't drift from the engine.
+{
+  const note = require("fs").readFileSync(require("path").join(__dirname, "../notes/abc-classes.html"), "utf8");
+  const [A, B, C] = r.abc, money = n => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = (n, d = 2) => (n * 100).toFixed(d) + "%";
+  const cv = r.variances.filter(v => v.abc === "C"), gross = list => list.reduce((t, v) => t + Math.abs(v.dollars), 0);
+  const starter = cv.find(v => v.sku === "STR-2500"), uom = cv.filter(v => v.pattern === "uom");
+  const pairs = r.variances.filter(v => v.abc === "A" && v.pattern === "mislocated");
+  const quoted = [money(s.bookValue), `Of the ${A.skus + B.skus + C.skus} SKUs, ${A.skus} hold ${pct(A.bookShare, 0)} of the value`,
+    ...[A, B, C].flatMap(c => [pct(c.bookShare), money(c.gross), pct(c.grossAccuracy)]),
+    pct(A.grossShare, 0) + " of the gross", "$" + gross(pairs).toLocaleString("en-US"), pct(gross(pairs) / A.gross, 0) + " of A",
+    `${A.varianceLines} of ${A.lines}`, "−$" + Math.abs(starter.dollars), pct(Math.abs(starter.dollars) / C.gross, 0) + " of C",
+    money(gross(uom)), pct(gross(uom) / C.gross, 0) + " of C", pct((Math.abs(starter.dollars) + gross(uom)) / C.gross, 0) + " of it"];
+  for (const q of quoted) assert.ok(note.includes(q), `ABC note quotes ${q}`);
+  assert.strictEqual(starter.pattern, "timing"); assert.strictEqual(uom.length, 2); assert.strictEqual(pairs.length, 4);
+}
+
 console.log("all checks passed");
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),
