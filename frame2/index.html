@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="description" content="Every Red Sox season from 1967 to 2024: wins, run differential and whether the record matched the process. Built with frame².">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <meta name="theme-color" content="#0d1117">
 <title>Red Sox Franchise Timeline</title>
+<meta name="description" content="Every Red Sox season from 1967 to 2024: wins, run differential and whether the record matched the process. Built with frame².">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Red Sox Franchise Timeline · frame²">
 <meta property="og:description" content="Every Red Sox season from 1967 to 2024: wins, run differential and whether the record matched the process.">
@@ -73,7 +73,7 @@ input[type=range]{accent-color:var(--red);width:90px}
 #minWinsVal{font-size:.75rem;color:var(--gold);min-width:24px}
 .tag-filters{display:flex;gap:5px;flex-wrap:wrap}
 .tag-btn{padding:4px 9px;border-radius:14px;font-size:.72rem;border:1px solid var(--border);background:var(--glass);color:var(--muted);transition:all .2s}
-.tag-btn.active{color:#fff}
+.tag-btn.active{color:#0d1117;font-weight:600}  /* dark text: white on these bright fills fell below 4.5:1 */
 .tag-btn[data-tag="signal"].active{background:var(--signal);border-color:var(--signal)}
 .tag-btn[data-tag="balanced"].active{background:var(--balanced);border-color:var(--balanced)}
 .tag-btn[data-tag="overperformed"].active{background:var(--over);border-color:var(--over)}
@@ -678,6 +678,11 @@ function buildEraTable(){
 }
 
 // ── ERA BAR ───────────────────────────────────────────────────────────────────
+// Era colors are tuned for chart bars; mixed toward white they stay readable as text on the dark background.
+function chipText(hex, amt=0.45){
+  const n=parseInt(hex.slice(1),16), mix=c=>Math.round(c+(255-c)*amt);
+  return `rgb(${mix(n>>16&255)},${mix(n>>8&255)},${mix(n&255)})`;
+}
 function buildEraBar(){
   const bar=document.getElementById('eraBar');
   MACRO_ERAS.forEach(e=>{
@@ -685,7 +690,7 @@ function buildEraBar(){
     btn.className='era-chip';
     btn.dataset.era=e.name;
     btn.textContent=e.name;
-    btn.style.cssText=`border-color:${e.color};color:${e.color}`;
+    btn.style.cssText=`border-color:${e.color};color:${chipText(e.color)}`;
     btn.onclick=()=>setEra(e.name);
     bar.appendChild(btn);
   });
