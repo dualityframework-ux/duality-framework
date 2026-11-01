@@ -14,6 +14,10 @@ It also builds a **recount sheet** in walking order (aisles in sequence, alterna
 
 Everything runs in the browser. The file is never uploaded.
 
+## Worked example
+
+[Walk through a synthetic three-location audit](WORKED_EXAMPLE.md), including signed variances, gross versus net accuracy, a potential mislocation pair, and the limits of inference without transaction evidence.
+
 ## Root-cause checks
 
 Each variance line is tested in this order and takes the first match:
