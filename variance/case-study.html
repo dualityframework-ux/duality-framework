@@ -153,6 +153,11 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
     <li><b>The four lines over $1,000 come with drafted write-ups</b> ready to verify and paste.</li>
   </ul>
 
+  <h3>Challenge cases beyond the demo</h3>
+  <p>Separate, hand-authored synthetic cases show where the rules can mislead: unrelated losses and receipts can look like a mislocation, a genuine receipt can look like a pack-size error, and unrelated quantity changes can look like transposed digits. These are plausible suggestions with the wrong stipulated cause.</p>
+  <p>The evidence checks reject transfers after the count and transactions for another item; a wrong quantity receives only partial support. Even an exact matching transfer record does not prove causation. Passing these checks reproduces the documented behavior, including false positives; it is not a measured diagnostic accuracy rate.</p>
+  <p><a href="https://github.com/dualityframework-ux/duality-framework/blob/improvements/analyst-introduction/variance/VALIDATION.md">Read the challenge scenarios, results and limits</a>.</p>
+
   <h2 id="limits">The limits</h2>
   <ul>
     <li><b>These are rules, not a model.</b> The tolerances (pairs within 10–15%, swaps in the same aisle) are judgment calls from experience. They are now adjustable in a settings panel, but someone still has to choose them.</li>
