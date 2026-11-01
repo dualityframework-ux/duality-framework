@@ -13,6 +13,18 @@ with sync_playwright() as playwright:
     for width in (320, 390, 1100):
         page = browser.new_page(viewport={"width": width, "height": 844}, java_script_enabled=False)
         page.goto((ROOT / "index.html").as_uri())
+        for name, href in (
+            ('Open Variance ↗', './variance/'),
+            ('Open Runway ↗', 'https://dualityframework-ux.github.io/Runway/'),
+            ('Open frame² ↗', './frame2/'),
+        ):
+            link = page.get_by_role('link', name=name, exact=True)
+            expect(link).to_have_attribute('href', href)
+            link.focus()
+            expect(link).to_be_focused()
+        for link in page.locator('.go a').all():
+            bounds = link.bounding_box()
+            assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Project tap area is too small'
         expect(page.locator('#log > ol > li')).to_have_count(3)
         history = page.locator('.log-history')
         older = history.locator('li').first
