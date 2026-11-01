@@ -71,7 +71,7 @@ SELECT
 FROM counts;</code></pre>
   <p>On the sample count that is 164 lines, 28 of them with a variance. <code>MAX(system_qty, 0)</code> keeps a negative system quantity from adding negative book value.</p>
 
-  <h2>1. Which lines matter: a window function</h2>
+  <h2 id="window">1. Which lines matter: a window function</h2>
   <p>Most of the dollars sit in a few lines. A running total over the lines, largest first, shows how few.</p>
   <pre class="sql"><code>-- Variance lines ranked by dollar impact, with the running share of gross variance.
 SELECT
@@ -89,7 +89,7 @@ ORDER BY ABS(var_dollars) DESC, line_no;</code></pre>
   </table></div>
   <p>The top two lines alone are 29.48% of gross variance. Line 9 takes the running share past 80%, so 9 of 28 lines are where the research time should go first.</p>
 
-  <h2>2. Stock in the wrong slot: a self-join</h2>
+  <h2 id="self-join">2. Stock in the wrong slot: a self-join</h2>
   <p>A mislocation shows up as two lines for the same SKU: over in one slot, short by about the same amount in another. Joining the view to itself on SKU finds them.</p>
   <pre class="sql"><code>-- Same SKU over in one location and short by about the same amount (within 15%) in another.
 SELECT
@@ -111,7 +111,7 @@ ORDER BY ABS(o.var_dollars) DESC;</code></pre>
   </table></div>
   <p>The battery and alternator pairs were planted in the synthetic sample. The serpentine belt was not: it came from the sample's random noise, and it is exactly what a real pair looks like. Whether a 3-unit pair is worth a transfer is a judgment call. The query surfaces it; a person decides.</p>
 
-  <h2>3. What keeps coming back: a join across two counts</h2>
+  <h2 id="two-counts">3. What keeps coming back: a join across two counts</h2>
   <p>A variance that shows up once might be a counting slip. One that shows up again, in the same direction, points to a process problem. Load an earlier count of the same locations as a second table and join on SKU and location.</p>
   <pre class="sql"><code>-- Needs a second table, prior_counts, with the same columns: an earlier count of the same locations.
 -- Lines that were off last time and are off again, largest combined dollars first.
