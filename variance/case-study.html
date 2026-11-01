@@ -30,6 +30,12 @@ body{margin:0;font:17px/1.65 var(--f-body)}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wrap{max-width:46rem;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.contents{margin-top:24px;padding:16px;background:var(--sheet);border:1px solid var(--rule);border-radius:8px}
+.contents p{margin:0 0 8px;font-weight:600}
+.contents ul{display:flex;flex-wrap:wrap;gap:4px 16px;list-style:none;margin:0;padding:0}
+.contents li{margin:0}
+.contents a{display:inline-flex;align-items:center;min-height:44px;padding:8px 0}
+h2[id]{scroll-margin-top:20px}
 .crumb{font-size:.85rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
 .eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:600;margin:34px 0 6px}
 h1{font-size:clamp(2rem,6vw,2.8rem);line-height:1.1;letter-spacing:-.03em;font-weight:800;margin:0 0 14px;text-wrap:balance}
@@ -70,7 +76,18 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
   <p class="dek">How I turned the most repetitive part of inventory control, explaining why the count was off, into a tool that does the first pass.</p>
   <div class="meta"><span>Ian Kachadorian</span><span>October 2026</span><span>6 min read</span></div>
 
-  <h2>The problem</h2>
+  <nav class="contents" aria-label="On this page">
+    <p>On this page</p>
+    <ul>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#approach">Approach</a></li>
+      <li><a href="#result">Result</a></li>
+      <li><a href="#limits">Limits</a></li>
+      <li><a href="#next">Next steps</a></li>
+    </ul>
+  </nav>
+
+  <h2 id="problem">The problem</h2>
   <p>Part of my job in a distribution center is researching inventory discrepancies: finding the root cause behind each quantity or location variance and getting it corrected.</p>
   <p>Most of that time is not detective work. It is recognizing patterns I have seen hundreds of times:</p>
   <ul>
@@ -81,7 +98,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
   </ul>
   <p>Pattern recognition that a person does the same way every week is exactly what a tool should do first. The person's time should go to the variances that do not fit a pattern.</p>
 
-  <h2>The approach</h2>
+  <h2 id="approach">The approach</h2>
   <p>I built Variance around the same four steps I follow by hand.</p>
 
   <h3>1. Measure both ways</h3>
@@ -119,7 +136,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
     <p><b>Implication.</b> Move the stock back to its home location and correct both locations in one transfer, not two adjustments. Review the put-away that touched both slots.</p>
   </div>
 
-  <h2>The result</h2>
+  <h2 id="result">The result</h2>
   <p>I tested it on a synthetic count of 164 lines with 14 problems planted in it: two mislocations, two unit-of-measure errors, a transposition, a look-alike swap, two timing issues, two empty locations, a found location, and one counter with a high error rate.</p>
   <ul>
     <li><b>All 14 were classified correctly,</b> and the counter was flagged. An automated test checks this on every change.</li>
@@ -127,7 +144,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
     <li><b>The four lines over $1,000 come with drafted write-ups</b> ready to verify and paste.</li>
   </ul>
 
-  <h2>The limits</h2>
+  <h2 id="limits">The limits</h2>
   <ul>
     <li><b>These are rules, not a model.</b> The tolerances (pairs within 10–15%, swaps in the same aisle) are judgment calls from experience. They are now adjustable in a settings panel, but someone still has to choose them.</li>
     <li><b>Evidence depends on the export.</b> With transaction history it can confirm some causes; without it, a variance only looks like a mislocation. Every draft is still a starting point to verify.</li>
@@ -135,7 +152,7 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
     <li><b>It has only seen synthetic data.</b> No employer data was used to build or test it.</li>
   </ul>
 
-  <h2>What I would build next</h2>
+  <h2 id="next">What I would build next</h2>
   <ol>
         <li>Learn the tolerances from write-ups a person has confirmed, so the rules fit each building.</li>
     </ol>
