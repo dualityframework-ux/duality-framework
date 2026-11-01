@@ -16,6 +16,16 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory() as directory
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.goto((ROOT / 'variance/index.html').as_uri())
+    # First visit: the sample is already showing, and the status says so near the top.
+    expect(page.locator('#msg')).to_contain_text('synthetic sample count')
+    expect(page.locator('#msg')).to_be_in_viewport()
+
+    # On a phone, upload feedback must appear without scrolling.
+    page.locator('#file').set_input_files({'name':'unknown-headers.csv', 'mimeType':'text/csv',
+                                         'buffer':b'Spot,Item Code,Book,Tally,Val\nA-01-01,SYN-001,10,8,5.00\n'})
+    expect(page.locator('#mapBox')).to_be_in_viewport()
+    assert page.evaluate('scrollY') == 0
+
     # The primary action is keyboard-operable.
     page.get_by_role('button', name='Load sample count', exact=True).focus()
     page.keyboard.press('Enter')
@@ -71,7 +81,7 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory() as directory
     for field, index in [('sku',0), ('location',1), ('system_qty',2), ('counted_qty',3), ('unit_cost',4)]:
         page.locator('#m-' + field).select_option(str(index))
     page.locator('#mapGo').click()
-    expect(page.locator('#msg')).to_contain_text('Analyzed 1 lines')
+    expect(page.locator('#msg')).to_contain_text('Analyzed 1 line from')
     assert not errors, errors
     browser.close()
 print('Variance browser checks passed: keyboard, uploads, evidence, comparison, CSV/recount downloads, mapping.')

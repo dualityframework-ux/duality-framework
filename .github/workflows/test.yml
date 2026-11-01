@@ -33,6 +33,8 @@ jobs:
       - run: pip install playwright
       - name: WCAG AA contrast, light and dark
         run: python tests/check_contrast.py index.html variance/index.html variance/case-study.html frame2/index.html frame2/case-study.html notes/gross-vs-net.html
+      - name: No sideways scroll at phone widths
+        run: python tests/check_phone_width.py index.html variance/index.html variance/case-study.html frame2/index.html frame2/case-study.html notes/gross-vs-net.html
 
   browser:
     runs-on: ubuntu-latest
