@@ -141,13 +141,19 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
     <h2 id="in-h">Load a cycle count</h2>
     <p class="sub">One row per counted location: SKU, location, system quantity, counted quantity and unit cost. Counter, count date and last movement date make the root causes sharper. Your file never leaves this browser.</p>
     <div class="bar">
-      <button id="sample">Load sample count</button>
-      <label class="btn ghost" for="file">Upload CSV</label><input id="file" type="file" accept=".csv,text/csv">
+      <label class="btn" for="file">Upload CSV</label><input id="file" type="file" accept=".csv,text/csv">
       <button class="ghost" id="pasteBtn">Paste CSV</button>
+      <button class="ghost" id="sample">Load sample count</button>
       <button class="ghost" id="sampleDl">Download sample CSV</button>
       <div class="field"><label for="thr">Write-up threshold</label><input id="thr" type="number" min="0" step="50" value="1000"></div>
       <div class="field"><label for="days">Recent movement (days)</label><input id="days" type="number" min="0" max="30" step="1" value="3"></div>
     </div>
+    <div id="pasteBox" hidden>
+      <textarea id="paste" aria-label="Paste CSV" placeholder="location,sku,system_qty,counted_qty,unit_cost&#10;A-01-01,FLT-1042,24,24,6.85"></textarea>
+      <div><button class="tiny" id="pasteGo">Analyze pasted data</button></div>
+    </div>
+    <div id="mapBox" hidden></div>
+    <div id="msg" class="note" role="status"></div>
     <div class="bar hist"><span class="note"><b>Transaction history</b> (optional): moves, receipts and picks, to check the evidence for each cause.</span>
       <label class="btn ghost tiny" for="txFile">Upload history CSV</label><input id="txFile" type="file" accept=".csv,text/csv">
       <button class="ghost tiny" id="txSample">Load sample history</button><span id="txMsg" class="note" role="status"></span></div>
@@ -167,12 +173,6 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
       </div>
       <div><button class="tiny ghost" id="resetSettings">Reset to defaults</button></div>
     </details>
-    <div id="pasteBox" hidden>
-      <textarea id="paste" aria-label="Paste CSV" placeholder="location,sku,system_qty,counted_qty,unit_cost&#10;A-01-01,FLT-1042,24,24,6.85"></textarea>
-      <div><button class="tiny" id="pasteGo">Analyze pasted data</button></div>
-    </div>
-    <div id="mapBox" hidden></div>
-    <div id="msg" class="note" role="status"></div>
   </section>
 
   <div id="out"></div>
@@ -229,7 +229,7 @@ function run(){
   if (txns) E.attachEvidence(result, txns, { recentDays: +$("#days").value || 0 });
   cmp = prior ? E.compareCounts(E.analyze(prior, { threshold: +$("#thr").value || 0, recentDays: +$("#days").value || 0, ...settings }), result) : null;
   filter = null;
-  $("#msg").innerHTML = `Analyzed <b>${records.length.toLocaleString()}</b> lines from ${esc(source)}.` + (skipped.length ? ` Skipped ${skipped.length} incomplete row${skipped.length>1?"s":""} (line ${skipped.slice(0,5).join(", ")}${skipped.length>5?"…":""}).` : "") + ` <button class="tiny ghost" id="remap">Check column matching</button>`;
+  $("#msg").innerHTML = (source === "the sample count" ? `Showing the synthetic sample count: <b>${records.length.toLocaleString()}</b> lines. Upload a CSV to analyze your own.` : `Analyzed <b>${records.length.toLocaleString()}</b> line${records.length===1?"":"s"} from ${esc(source)}.`) + (skipped.length ? ` Skipped ${skipped.length} incomplete row${skipped.length>1?"s":""} (line ${skipped.slice(0,5).join(", ")}${skipped.length>5?"…":""}).` : "") + ` <button class="tiny ghost" id="remap">Check column matching</button>`;
   render();
 }
 
