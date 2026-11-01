@@ -566,7 +566,7 @@ function buildScatterChart(data){
 
 // ── SEASON CARD ───────────────────────────────────────────────────────────────
 let seasonTrigger=null;
-function showSeason(s){
+function showSeason(s, moveFocus=true){
   state.selectedSeason=s.season;
   const card=document.getElementById('seasonCard');
   if(card.style.display!=='block') seasonTrigger=document.activeElement;
@@ -606,21 +606,26 @@ function showSeason(s){
     </div>
   </div>`;
   card.style.display='block';
-  card.querySelector('.close-btn').focus({preventScroll:true});
+  if(moveFocus) card.querySelector('.close-btn').focus({preventScroll:true});
   card.classList.remove('fade-in');
   void card.offsetWidth;
   card.classList.add('fade-in');
-  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+  if(moveFocus) card.scrollIntoView({behavior:'smooth',block:'nearest'});
   // highlight grid tile
   document.querySelectorAll('.sg-tile').forEach(t=>{
     t.classList.toggle('active', parseInt(t.dataset.season)===s.season);
   });
 }
-function closeCard(){
+function closeCard(restoreFocus=true){
   document.getElementById('seasonCard').style.display='none';
   state.selectedSeason=null;
   document.querySelectorAll('.sg-tile').forEach(t=>t.classList.remove('active'));
-  if(seasonTrigger?.isConnected && !seasonTrigger.disabled) seasonTrigger.focus();
+  if(restoreFocus && seasonTrigger){
+    const trigger=seasonTrigger.matches('.sg-tile')
+      ? [...document.querySelectorAll('.sg-tile')].find(tile=>tile.dataset.season===seasonTrigger.dataset.season)
+      : seasonTrigger;
+    if(trigger?.isConnected && !trigger.disabled) trigger.focus();
+  }
   seasonTrigger=null;
 }
 function navSeason(dir){
@@ -733,8 +738,8 @@ function applyFilters(){
   buildGrid();
   if(state.selectedSeason){
     const s=vis.find(s=>s.season===state.selectedSeason);
-    if(!s) closeCard();
-    else showSeason(s);
+    if(!s) closeCard(false);
+    else showSeason(s, false);
   }
 }
 function resetFilters(){
@@ -770,6 +775,7 @@ document.getElementById('playerSearch').addEventListener('input',e=>{
   applyFilters();
 });
 document.addEventListener('keydown',e=>{
+  if(e.target.closest('input, select, textarea, [contenteditable]')) return;
   if(e.key==='ArrowLeft') navSeason(-1);
   if(e.key==='ArrowRight') navSeason(1);
   if(e.key==='Escape') closeCard();
