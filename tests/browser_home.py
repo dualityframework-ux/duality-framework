@@ -31,9 +31,18 @@ with sync_playwright() as playwright:
             expect(link).to_have_attribute('href', href)
             link.focus()
             expect(link).to_be_focused()
-        for link in page.locator('.go a').all():
+        for link in page.locator('.go a, .project-open').all():
             bounds = link.bounding_box()
             assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Project tap area is too small'
+        # Each live tool has one clear entry point before its supporting links.
+        for card in page.locator('.card').all():
+            if card.locator('.status.live').count():
+                expect(card.locator('.project-open')).to_have_count(1)
+                primary = card.locator('.project-open').bounding_box()
+                supporting = card.locator('.go').bounding_box()
+                assert primary['y'] + primary['height'] <= supporting['y']
+            else:
+                expect(card.locator('.project-open')).to_have_count(0)
         expect(page.locator('#log > ol > li')).to_have_count(3)
         history = page.locator('.log-history')
         older = history.locator('li').first
