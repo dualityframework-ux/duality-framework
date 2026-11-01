@@ -77,6 +77,7 @@ h2{font-size:clamp(1.9rem,4vw,2.8rem);letter-spacing:-.035em;line-height:1.1;mar
 footer{padding-block:36px 56px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line)}
 footer .links{gap:18px}
 @media(max-width:820px){.cards,.steps,.facts{grid-template-columns:1fr}.hero{padding-block:64px 72px}.links{gap:14px;font-size:.92rem}}
+@media(max-width:480px){nav .links{flex-wrap:wrap;justify-content:flex-end;column-gap:12px;row-gap:2px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
@@ -153,6 +154,7 @@ footer .links{gap:18px}
   <h2 id="log-h">Recently shipped.</h2>
   <p class="sub">What changed, newest first. Each entry links to the thing itself.</p>
   <ol class="log">
+    <li><time datetime="2026-11-01">Nov 1</time><div><b>Variance is easier to start.</b> Upload CSV is now the main button, the page says when you're looking at the sample, and on a phone the column-matching step appears right under the upload instead of off-screen. <a href="./variance/">Try it</a></div></li>
     <li><time datetime="2026-10-31">Oct 31</time><div><b>Variance compares counts.</b> Load last month's count of the same locations to see accuracy change, causes then and now, and every line that is off again. On the sample, 9 repeat lines are 40% of the gross. Also in Python and SQL. <a href="./variance/">Try it</a></div></li>
     <li><time datetime="2026-10-31">Oct 31</time><div><b>First note: gross vs. net accuracy.</b> Why a count can read 99% while $11,562 of stock is in the wrong place, worked through with Variance's numbers. <a href="./notes/gross-vs-net.html">Read it</a></div></li>
     <li><time datetime="2026-10-31">Oct 31</time><div><b>frame² uses one rule for every tag.</b> Signal, overperformed and underperformed now all come from expected wins, so the timeline and the luck table can't disagree. <a href="./frame2/">Open it</a></div></li>
@@ -196,7 +198,7 @@ footer .links{gap:18px}
   <p class="sub">I'm Ian Kachadorian. I've spent my career making numbers agree and explaining when they don't. Duality is where I turn that habit into tools.</p>
   <div class="facts">
     <div class="fact"><div class="n">$4<span>B</span></div><h3>Fund accounting, BNY Mellon</h3><p>Led a team of six delivering daily NAVs at 99.5%+ accuracy across six funds.</p></div>
-    <div class="fact"><div class="n">250<span>K+</span></div><h3>Inventory control</h3><p>Ran cycle counts over 250,000+ locations per trimester; root-cause 150+ variances a week.</p></div>
+    <div class="fact"><div class="n">250<span>K+</span></div><h3>Inventory control</h3><p>Supervised 10 cycle counters over 250,000+ locations per trimester at 97.5% gross and 99% net accuracy; root-cause 150+ variances a week.</p></div>
     <div class="fact"><div class="n">5,000<span>+</span></div><h3>Sports modeling</h3><p>Modeled 360+ Division I teams across 5,000+ games in Python and R.</p></div>
   </div>
 </section>
