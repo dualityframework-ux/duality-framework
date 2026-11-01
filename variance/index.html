@@ -40,6 +40,9 @@ h1{font-weight:800;font-size:2rem;letter-spacing:-.03em;margin:0;display:flex;al
 h1 .mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--label);color:var(--label-ink);font-size:1.2rem}
 .tag{color:var(--muted);margin:2px 0 0}
 .by{font-size:.82rem;color:var(--muted)}
+.sample-guide{margin-bottom:18px}
+.sample-guide .btn{align-self:flex-start;text-decoration:none}
+#p-h{scroll-margin-top:20px}
 h2{font-size:1.1rem;font-weight:700;margin:0;letter-spacing:-.01em}
 .sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .sub{color:var(--muted);font-size:.88rem;margin:0}
@@ -286,6 +289,11 @@ function render(){
   const top = r.byPattern.filter(p => p.key!=="unexplained")[0];
   const shown = filter ? r.variances.filter(v => v.pattern === filter) : r.variances;
   $("#out").innerHTML = `
+  ${source === "the sample count" ? `<section class="sheet sample-guide" aria-labelledby="sample-guide-h">
+    <h2 id="sample-guide-h">Explore the sample</h2>
+    <p class="sub">These results use made-up inventory. Start with the largest differences, then review likely causes and the recount sheet.</p>
+    <a class="btn" href="#p-h">Explore sample results</a>
+  </section>` : ""}
   <div class="tiles">
     <div class="tile"><div class="k">Gross accuracy</div><div class="v">${pct(s.grossAccuracy)}</div><div class="d">of ${money(s.bookValue)} book</div></div>
     <div class="tile"><div class="k">Net accuracy</div><div class="v">${pct(s.netAccuracy)}</div><div class="d">overs and shorts offset</div></div>

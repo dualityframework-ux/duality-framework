@@ -30,17 +30,25 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory() as directory
     # First visit: the sample is already showing, and the status says so near the top.
     expect(page.locator('#msg')).to_contain_text('synthetic sample count')
     expect(page.locator('#msg')).to_be_in_viewport()
+    guide = page.get_by_role('region', name='Explore the sample', exact=True)
+    expect(guide).to_be_visible()
+    guide.get_by_role('link', name='Explore sample results', exact=True).focus()
+    page.keyboard.press('Enter')
+    expect(page.locator('#p-h')).to_be_in_viewport()
+    page.evaluate('scrollTo(0, 0)')
 
     # On a phone, upload feedback must appear without scrolling.
     page.locator('#file').set_input_files({'name':'unknown-headers.csv', 'mimeType':'text/csv',
                                          'buffer':b'Spot,Item Code,Book,Tally,Val\nA-01-01,SYN-001,10,8,5.00\n'})
     expect(page.locator('#mapBox')).to_be_in_viewport()
+    expect(guide).to_have_count(0)
     assert page.evaluate('scrollY') == 0
 
     # The primary action is keyboard-operable.
     page.get_by_role('button', name='Load sample count', exact=True).focus()
     page.keyboard.press('Enter')
     expect(page.locator('#msg')).to_contain_text('164')
+    expect(guide).to_be_visible()
 
     # ABC value classes: three rows, A first, with its share of book value stated.
     abc = page.locator('section[aria-labelledby="abc-h"]')
@@ -51,6 +59,7 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory() as directory
     # Exercise actual FileReader uploads, using only synthetic fixtures.
     page.locator('#file').set_input_files(FIXTURES / 'sample_count.csv')
     expect(page.locator('#msg')).to_contain_text('164')
+    expect(guide).to_have_count(0)
     page.locator('#txFile').set_input_files(FIXTURES / 'sample_transactions.csv')
     expect(page.locator('#txMsg')).to_contain_text('11 transactions loaded')
     expect(page.locator('#out')).to_contain_text('matches transfers for 2')
