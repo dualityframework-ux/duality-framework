@@ -130,16 +130,16 @@ td.r,th.r{text-align:right;font-family:var(--f-num)}
   <h2>The limits</h2>
   <ul>
     <li><b>These are rules, not a model.</b> The tolerances (pairs within 10–15%, swaps in the same aisle) are judgment calls from experience. They are now adjustable in a settings panel, but someone still has to choose them.</li>
-    <li><b>It only sees the count.</b> Without transaction history it can say a variance looks like a mislocation, not prove it. Every draft is a starting point to verify.</li>
+    <li><b>Evidence depends on the export.</b> With transaction history it can confirm some causes; without it, a variance only looks like a mislocation. Every draft is still a starting point to verify.</li>
     <li><b>Timing needs data.</b> The timing check only works if the export includes a last-movement date.</li>
     <li><b>It has only seen synthetic data.</b> No employer data was used to build or test it.</li>
   </ul>
 
   <h2>What I would build next</h2>
   <ol>
-    <li>Pull transaction history to confirm a cause instead of inferring it.</li>
-    <li>Learn the tolerances from write-ups a person has confirmed, so the rules fit each building.</li>
+        <li>Learn the tolerances from write-ups a person has confirmed, so the rules fit each building.</li>
     </ol>
+  <p><b>Update:</b> transaction history is now built in. Load a file of moves, receipts and picks, and Variance checks it against each diagnosis. On the sample, the history confirms the battery mislocation (the actual replenishment between the two slots) and both timing issues, and supports four more. For the alternators it shows a putaway from the dock rather than from the paired slot, which is exactly the kind of thing worth checking before writing it up. Confirmed lines carry an Evidence line in the drafted write-up.</p>
   <p><b>Update:</b> the recount sheet is now built. Variance lists every location worth recounting in walking order, aisle by aisle in alternating directions, with a blind-count option that hides the system quantity so it can't bias the recount.</p>
 
   <div class="callout"><p><b>Built with</b> plain JavaScript and no dependencies. The analysis logic lives in one file of pure functions, tested in Node and run on every push with GitHub Actions. Files never leave the browser.</p></div>

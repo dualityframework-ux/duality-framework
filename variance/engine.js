@@ -242,7 +242,73 @@
     if (v.partner) mechanism += v.pattern === "mislocated" ? `. The offsetting variance is at ${v.partner}` : `. The paired variance is ${v.partner}`;
     if (v.note) mechanism += ` (${v.note})`;
     mechanism += ".";
-    return { observation, mechanism, implication: p.action, text: `Observation: ${observation}\nMechanism: ${mechanism}\nImplication: ${p.action}` };
+    const evidence = v.evidence && v.evidence.status !== "none" ? v.evidence.text : "";
+    return { observation, mechanism, implication: p.action, evidence,
+      text: `Observation: ${observation}\nMechanism: ${mechanism}${evidence ? `\nEvidence: ${evidence}` : ""}\nImplication: ${p.action}` };
+  }
+
+  // ---------- transaction history: evidence for each likely cause ----------
+  const TXN_FIELDS = {
+    date: ["date", "transaction date", "txn date", "created", "timestamp"],
+    sku:  ["sku", "item", "item number", "part", "part number", "product", "material"],
+    from: ["from", "from location", "from loc", "source", "source location", "from bin"],
+    to:   ["to", "to location", "to loc", "destination", "dest", "destination location", "to bin"],
+    qty:  ["qty", "quantity", "units", "qty moved"],
+    type: ["type", "transaction type", "txn type", "activity", "reason"],
+  };
+
+  function parseTransactions(text) {
+    const rows = parseCSV(text); if (rows.length < 2) return { error: "The transaction file has no data rows." };
+    const h = rows[0].map(norm), map = {};
+    for (const [k, names] of Object.entries(TXN_FIELDS)) {
+      let i = h.findIndex(x => names.includes(x)); if (i < 0) i = h.findIndex(x => names.some(n => x.includes(n)));
+      if (i >= 0 && !Object.values(map).includes(i)) map[k] = i;
+    }
+    if (map.date == null || map.sku == null || (map.from == null && map.to == null)) return { error: "Couldn't find date, SKU and from/to location columns in the transaction file." };
+    const txns = rows.slice(1).map(r => ({
+      date: parseDate(r[map.date]), sku: (r[map.sku] || "").trim(),
+      from: map.from == null ? "" : (r[map.from] || "").trim(), to: map.to == null ? "" : (r[map.to] || "").trim(),
+      qty: map.qty == null ? NaN : num(r[map.qty]), type: map.type == null ? "" : (r[map.type] || "").trim().toLowerCase(),
+    })).filter(t => t.date && t.sku);
+    return { txns };
+  }
+
+  const fmtDate = d => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const describe = t => { const what = t.type ? `${/^[aeiou]/.test(t.type) ? "an" : "a"} ${t.type}${isFinite(t.qty) ? ` of ${t.qty}` : ""}` : `${isFinite(t.qty) ? t.qty + " units" : "stock"} moved`;
+    return `${what} ${t.from && t.to ? `from ${t.from} to ${t.to}` : t.to ? `into ${t.to}` : `out of ${t.from}`} on ${fmtDate(t.date)}`; };
+
+  // Adds v.evidence = { status: "confirmed" | "supported" | "none", text } to each variance line.
+  function attachEvidence(result, txns, opts = {}) {
+    const recentDays = opts.recentDays ?? 3;
+    const bySku = {}; txns.forEach(t => (bySku[t.sku] ||= []).push(t));
+    Object.values(bySku).forEach(list => list.sort((a, b) => b.date - a.date));
+    const countDate = result.lines.reduce((m, l) => (l.countDate && (!m || l.countDate > m) ? l.countDate : m), null);
+    const tally = { confirmed: 0, supported: 0, none: 0 };
+    for (const v of result.variances) {
+      const list = bySku[v.sku] || [], cd = v.countDate || countDate;
+      const into = list.filter(t => t.to === v.location), outOf = list.filter(t => t.from === v.location);
+      let ev = { status: "none", text: "No transactions for this item and location in the history." };
+      if (v.pattern === "mislocated" && v.partner) {
+        const exact = v.qty > 0 ? into.find(t => t.from === v.partner) : outOf.find(t => t.to === v.partner);
+        const loose = v.qty > 0 ? into[0] : list.find(t => t.to === v.partner);
+        if (exact) ev = { status: "confirmed", text: `History shows ${describe(exact)}, which matches the offsetting pair.` };
+        else if (loose) ev = { status: "supported", text: `History shows ${describe(loose)}, not a move from the paired slot. Check where the stock came from.` };
+      } else if (v.pattern === "timing") {
+        const recent = list.filter(t => (t.to === v.location || t.from === v.location) && cd && (cd - t.date) / 864e5 >= 0 && (cd - t.date) / 864e5 <= recentDays);
+        if (recent.length) ev = { status: "confirmed", text: `Activity just before the count: ${recent.map(describe).join("; ")}.` };
+      } else if (v.pattern === "found") {
+        if (into.length) ev = { status: "supported", text: `History shows ${describe(into[0])}. The system doesn't show the stock, so the move may not have posted to this location.` };
+      } else if (v.pattern === "empty") {
+        if (outOf.length) ev = { status: "supported", text: `Last activity was ${describe(outOf[0])}. Nothing has been put back since.` };
+        else if (into.length) ev = { status: "supported", text: `History shows ${describe(into[0])} and no picks since, which points to an unrecorded move or shrink.` };
+      } else if (into.length || outOf.length) {
+        const last = [...into, ...outOf].sort((a, b) => b.date - a.date)[0];
+        ev = { status: "none", text: `Most recent activity: ${describe(last)}. It doesn't confirm or rule out this cause.` };
+      }
+      v.evidence = ev; tally[ev.status]++;
+    }
+    result.evidence = { ...tally, transactions: txns.length };
+    return result;
   }
 
   // ---------- recount sheet in walking order ----------
@@ -335,6 +401,26 @@
     return toCSV(rows);
   }
 
-  const api = { DEFAULTS, parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
+  // Synthetic transaction history that goes with sampleCSV: some of it confirms the planted causes, some only supports them.
+  function sampleTransactionsCSV(seedDate) {
+    const base = seedDate ? new Date(seedDate) : new Date(); base.setHours(12, 0, 0, 0);
+    const day = n => { const d = new Date(base); d.setDate(d.getDate() - n); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+    const rows = [["date", "sku", "type", "from_location", "to_location", "qty"],
+      [day(12), "BAT-5100", "replenishment", "C-14-02", "C-15-04", 12],   // confirms the battery mislocation
+      [day(9),  "ALT-2400", "putaway", "DOCK-03", "D-21-03", 7],          // supports the alternator pair, wrong source
+      [day(1),  "SEN-3200", "receipt", "DOCK-01", "F-02-05", 6],          // confirms timing
+      [day(2),  "STR-2500", "pick", "B-19-02", "", 4],                    // confirms timing
+      [day(20), "PMP-4100", "pick", "A-22-01", "", 3],                    // supports empty location
+      [day(5),  "SEN-3100", "putaway", "DOCK-02", "D-08-04", 9],          // supports found stock
+      [day(15), "LMP-9005", "putaway", "DOCK-01", "E-12-01", 30],
+      [day(15), "LMP-9006", "putaway", "DOCK-01", "E-12-02", 22],
+      [day(30), "CLP-5005", "receipt", "DOCK-02", "B-06-02", 300],
+      [day(6),  "FLT-1042", "pick", "C-23-02", "", 2],
+      [day(11), "WIP-6020", "pick", "B-24-01", "", 1],
+    ];
+    return toCSV(rows);
+  }
+
+  const api = { DEFAULTS, parseTransactions, attachEvidence, sampleTransactionsCSV, parseCSV, toCSV, FIELDS, guessMapping, buildRecords, analyze, explain, PATTERNS, sampleCSV, money, parseLocation, walkingOrder, recountList, RECOUNT_REASON };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.VarianceEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

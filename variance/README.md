@@ -27,6 +27,16 @@ Each variance line is tested in this order and takes the first match:
 | Found stock | Stock where the system shows none | Check unposted receipts and transfers |
 | Counter accuracy | The counter's variance rate is well above the team's | Recount with a different counter |
 
+## Transaction history (optional)
+
+Add a second CSV of moves, receipts and picks (date, SKU, from location, to location, quantity, type) and Variance checks the history against each diagnosis:
+
+- **Confirmed:** a mislocated pair with the actual transfer between the two slots, or a timing variance with activity in the days before the count.
+- **Supported:** history consistent with the cause but not proof, such as a putaway into the over slot from somewhere other than the paired slot.
+- Write-ups gain an **Evidence** line citing the transaction.
+
+The page has a sample history that goes with the sample count: it confirms 4 lines and supports 4.
+
 ## Settings
 
 The matching rules are tunable per building, in the page's **Detection settings** panel or as options to `analyze()` / flags on the Python CLI: mislocation and swap match tolerance, the smallest quantity that counts as a mislocation or a UOM error, the pack sizes checked for UOM errors, and how many lines a counter needs before their rate is judged.

@@ -98,6 +98,10 @@ tr.hot td{background:var(--bad-soft)}
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 .map{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
 .note{font-size:.84rem;color:var(--muted)}
+.evb{display:inline-block;font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+.evb.ok,b.ok{color:var(--good)}.evb.ok{border:1px solid var(--good)}
+.evb.maybe,b.maybe{color:var(--warn)}.evb.maybe{border:1px solid var(--warn)}
+.hist{align-items:center}
 .settings{border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
 .settings summary{cursor:pointer;font-weight:600;font-size:.9rem}
 .settings[open]{display:flex;flex-direction:column;gap:10px}
@@ -142,6 +146,9 @@ footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;ga
       <div class="field"><label for="thr">Write-up threshold</label><input id="thr" type="number" min="0" step="50" value="1000"></div>
       <div class="field"><label for="days">Recent movement (days)</label><input id="days" type="number" min="0" max="30" step="1" value="3"></div>
     </div>
+    <div class="bar hist"><span class="note"><b>Transaction history</b> (optional): moves, receipts and picks, to confirm each cause.</span>
+      <label class="btn ghost tiny" for="txFile">Upload history CSV</label><input id="txFile" type="file" accept=".csv,text/csv">
+      <button class="ghost tiny" id="txSample">Load sample history</button><span id="txMsg" class="note" role="status"></span></div>
     <details id="settings" class="settings">
       <summary>Detection settings</summary>
       <p class="note">Tune the checks to your building. Changes re-run the analysis right away and reset when you leave the page.</p>
@@ -183,6 +190,7 @@ const qtyS = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleStrin
 
 let raw = null, map = null, result = null, filter = null, source = "", recountMin = 25, blind = true;
 let settings = { ...E.DEFAULTS };
+let txns = null, txLabel = "";
 function fillSettings(){ document.querySelectorAll("[data-s]").forEach(el => { const v = settings[el.dataset.s]; el.value = el.dataset.s === "packs" ? v.join(", ") : el.dataset.pct ? Math.round(v*100) : v; }); }
 
 function toast(m){ const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),1800); }
@@ -191,6 +199,7 @@ function load(text, label){
   const rows = E.parseCSV(text);
   if (rows.length < 2){ $("#msg").innerHTML = '<span class="err">That file has no data rows. Check that it is a CSV with a header row.</span>'; return; }
   raw = { headers: rows[0], rows: rows.slice(1) }; source = label;
+  txns = null; txLabel = ""; $("#txMsg").textContent = "";
   map = E.guessMapping(raw.headers);
   const missing = Object.entries(E.FIELDS).filter(([k,f]) => f.required && map[k] == null);
   if (missing.length) { showMapping(missing.map(([,f]) => f.label)); $("#out").innerHTML = ""; return; }
@@ -210,6 +219,7 @@ function run(){
   const { records, skipped } = E.buildRecords(raw.rows, map);
   if (!records.length){ $("#msg").innerHTML = '<span class="err">No rows had a SKU, location, both quantities and a unit cost. Check the column matching.</span>'; showMapping(); return; }
   result = E.analyze(records, { threshold: +$("#thr").value || 0, recentDays: +$("#days").value || 0, ...settings });
+  if (txns) E.attachEvidence(result, txns, { recentDays: +$("#days").value || 0 });
   filter = null;
   $("#msg").innerHTML = `Analyzed <b>${records.length.toLocaleString()}</b> lines from ${esc(source)}.` + (skipped.length ? ` Skipped ${skipped.length} incomplete row${skipped.length>1?"s":""} (line ${skipped.slice(0,5).join(", ")}${skipped.length>5?"…":""}).` : "") + ` <button class="tiny ghost" id="remap">Check column matching</button>`;
   render();
@@ -232,6 +242,7 @@ function paretoChart(p, for80){
     ${top.map((v,i)=>`<circle cx="${L+i*bw+bw/2}" cy="${yc(v.cumShare)}" r="${i===k?4.5:2.5}" fill="var(--accent)"/>`).join("")}
   </svg>`;
 }
+function evBadge(v){ const st = v.evidence && v.evidence.status; return st === "confirmed" ? ' <span class="evb ok" title="Confirmed by transaction history">✓ confirmed</span>' : st === "supported" ? ' <span class="evb maybe" title="Supported by transaction history">supported</span>' : ""; }
 function niceStep(max){ const raw = max/4, p = Math.pow(10, Math.floor(Math.log10(raw||1))); return [1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw) || raw; }
 function shortMoney(v){ return v>=1000 ? "$"+(v/1000).toFixed(v%1000?1:0)+"k" : "$"+Math.round(v); }
 
@@ -260,6 +271,7 @@ function render(){
     <section class="sheet" aria-labelledby="c-h">
       <h2 id="c-h">Likely causes</h2>
       <p class="sub">${top ? `<b>${esc(top.name)}</b> is the biggest explained driver at ${money(top.gross)} gross.` : "No common pattern matched these variances."} Tap a cause to filter the lines below.</p>
+      ${r.evidence ? `<p class="sub">Transaction history <b class="ok">confirms ${r.evidence.confirmed}</b> and <b class="maybe">supports ${r.evidence.supported}</b> of ${r.variances.length} lines (${r.evidence.transactions} transactions from ${esc(txLabel)}).</p>` : ""}
       <div class="causes">${r.byPattern.map(p=>`<button class="cause ${filter===p.key?"on":""}" data-p="${p.key}" aria-pressed="${filter===p.key}">
         <span class="cname">${esc(p.name)}<small>${p.count} line${p.count===1?"":"s"}</small></span>
         <span class="track" aria-hidden="true"><i style="width:${(p.gross/s.gross*100).toFixed(1)}%"></i></span>
@@ -272,8 +284,8 @@ function render(){
     <p class="sub">Lines at or over ${money(r.threshold)}, each with a drafted explanation in observation, mechanism, implication form. Verify before you submit it.</p>
     ${flagged.length ? flagged.map((v,i)=>{ const x = E.explain(v); return `<article class="flag">
       <div class="top"><span class="who"><span class="loc">${esc(v.location)}</span><b>${esc(v.sku)}</b><span class="note">${esc(v.description)}</span></span>
-      <span class="who"><span class="pill p-${v.pattern}">${esc(E.PATTERNS[v.pattern].short)}</span><span class="num ${v.dollars<0?"neg":"pos"}">${money(v.dollars,true)}</span><button class="tiny ghost" data-copy="${i}">Copy</button></span></div>
-      <dl class="oim"><dt>Observation</dt><dd>${esc(x.observation)}</dd><dt>Mechanism</dt><dd>${esc(x.mechanism)}</dd><dt>Implication</dt><dd>${esc(x.implication)}</dd></dl></article>`; }).join("")
+      <span class="who"><span class="pill p-${v.pattern}">${esc(E.PATTERNS[v.pattern].short)}</span>${evBadge(v)}<span class="num ${v.dollars<0?"neg":"pos"}">${money(v.dollars,true)}</span><button class="tiny ghost" data-copy="${i}">Copy</button></span></div>
+      <dl class="oim"><dt>Observation</dt><dd>${esc(x.observation)}</dd><dt>Mechanism</dt><dd>${esc(x.mechanism)}</dd>${x.evidence?`<dt>Evidence</dt><dd>${esc(x.evidence)}</dd>`:""}<dt>Implication</dt><dd>${esc(x.implication)}</dd></dl></article>`; }).join("")
       : `<div class="empty">No single line reaches ${money(r.threshold)}. Lower the threshold to draft explanations for smaller lines.</div>`}
   </section>
 
@@ -298,7 +310,7 @@ function render(){
     <div class="bar" style="justify-content:space-between"><h2 id="a-h">All variance lines</h2><button class="tiny ghost" id="export">Download results CSV</button></div>
     <div class="filters"><button class="chip ${!filter?"on":""}" data-p="" aria-pressed="${!filter}">All ${r.variances.length}</button>${r.byPattern.map(p=>`<button class="chip ${filter===p.key?"on":""}" data-p="${p.key}" aria-pressed="${filter===p.key}">${esc(p.short)} ${p.count}</button>`).join("")}</div>
     <div class="scroll"><table><thead><tr><th>Location</th><th>SKU</th><th>Cause</th><th class="r">System</th><th class="r">Counted</th><th class="r">Units</th><th class="r">Dollars</th></tr></thead><tbody>
-    ${shown.map(v=>`<tr><td><span class="loc">${esc(v.location)}</span></td><td>${esc(v.sku)}${v.description?`<br><span class="note">${esc(v.description)}</span>`:""}</td><td><span class="pill p-${v.pattern}">${esc(E.PATTERNS[v.pattern].short)}</span>${v.partner?`<br><span class="note">↔ ${esc(v.partner)}</span>`:""}</td><td class="r">${v.system.toLocaleString()}</td><td class="r">${v.counted.toLocaleString()}</td><td class="r ${v.qty<0?"neg":"pos"}">${qtyS(v.qty)}</td><td class="r ${v.dollars<0?"neg":"pos"}">${money(v.dollars,true)}</td></tr>`).join("")}
+    ${shown.map(v=>`<tr><td><span class="loc">${esc(v.location)}</span></td><td>${esc(v.sku)}${v.description?`<br><span class="note">${esc(v.description)}</span>`:""}</td><td><span class="pill p-${v.pattern}">${esc(E.PATTERNS[v.pattern].short)}</span>${evBadge(v)}${v.partner?`<br><span class="note">↔ ${esc(v.partner)}</span>`:""}</td><td class="r">${v.system.toLocaleString()}</td><td class="r">${v.counted.toLocaleString()}</td><td class="r ${v.qty<0?"neg":"pos"}">${qtyS(v.qty)}</td><td class="r ${v.dollars<0?"neg":"pos"}">${money(v.dollars,true)}</td></tr>`).join("")}
     </tbody></table></div>
   </section>`;
 }
@@ -334,6 +346,7 @@ document.addEventListener("click", e => {
   else if (t.dataset.p !== undefined && result) { filter = t.dataset.p ? (filter === t.dataset.p && t.classList.contains("cause") ? null : t.dataset.p) : null; render(); }
   else if (t.dataset.copy !== undefined) { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(E.explain(f[+t.dataset.copy]).text); }
   else if (t.id === "copyAll") { const f = result.variances.filter(v => Math.abs(v.dollars) >= result.threshold); copy(f.map(v => E.explain(v).text).join("\n\n")); }
+  else if (t.id === "txSample") { loadHistory(E.sampleTransactionsCSV(), "the sample history"); }
   else if (t.id === "resetSettings") { settings = { ...E.DEFAULTS }; fillSettings(); if (raw && map) run(); toast("Settings reset"); }
   else if (t.id === "export") exportCSV();
   else if (t.id === "sampleDl") download(E.sampleCSV(), "variance-sample-count.csv");
@@ -343,6 +356,13 @@ document.addEventListener("click", e => {
     rc.rows.forEach((v,i)=>rows.push([i+1,v.location,v.sku,v.description,v.reason].concat(blind?[]:[v.system]).concat(["",""])));
     download(E.toCSV(rows), "variance-recount-sheet.csv"); }
 });
+function loadHistory(text, label){
+  if (!raw){ toast("Load a count first"); return; }
+  const r = E.parseTransactions(text);
+  if (r.error){ $("#txMsg").innerHTML = '<span class="err">' + esc(r.error) + '</span>'; return; }
+  txns = r.txns; txLabel = label; $("#txMsg").textContent = `${txns.length} transactions loaded.`; run();
+}
+$("#txFile").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => loadHistory(rd.result, f.name); rd.readAsText(f); e.target.value = ""; });
 $("#file").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => load(rd.result, f.name); rd.readAsText(f); e.target.value = ""; });
 ["#thr","#days"].forEach(id => $(id).addEventListener("change", () => { if (raw && map) run(); }));
 document.addEventListener("change", e => {

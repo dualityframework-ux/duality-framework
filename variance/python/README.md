@@ -45,4 +45,6 @@ See [`example_report.md`](example_report.md) for the output on the sample count.
 - `analyze` runs the checks in the same order as the browser tool (mislocated, UOM, transposed, swap, timing, empty, found, counter) and returns metrics, the Pareto, causes and counter rates.
 - `explain` drafts each write-up as observation → mechanism → implication; `report` assembles the markdown.
 
+Transaction-history evidence is in the browser tool and `engine.js`; it has not been ported to Python yet.
+
 The sample count is synthetic. No employer data was used.

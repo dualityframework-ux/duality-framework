@@ -64,6 +64,22 @@ const strictPairs = E.analyze(records, { minPairUnits: 5 });
 assert.notStrictEqual(strictPairs.variances.find(v => v.sku === "BLT-8120").pattern, "mislocated", "3-unit pair ignored at minimum 5");
 assert.strictEqual(strictPairs.variances.find(v => v.sku === "BAT-5100" && v.location === "C-14-02").pattern, "mislocated", "12-unit pair still found");
 
+// transaction history evidence
+const tx = E.parseTransactions(E.sampleTransactionsCSV("2026-10-31"));
+assert.ok(!tx.error && tx.txns.length >= 10, "sample transactions parse");
+const ev = E.attachEvidence(E.analyze(records, { threshold: 1000, recentDays: 3 }), tx.txns, { recentDays: 3 });
+const evOf = (sku, loc) => ev.variances.find(v => v.sku === sku && v.location === loc).evidence;
+assert.strictEqual(evOf("BAT-5100", "C-15-04").status, "confirmed", "battery move confirmed (over slot)");
+assert.strictEqual(evOf("BAT-5100", "C-14-02").status, "confirmed", "battery move confirmed (short slot)");
+assert.strictEqual(evOf("ALT-2400", "D-21-03").status, "supported", "alternator only supported: came from the dock");
+assert.strictEqual(evOf("SEN-3200", "F-02-05").status, "confirmed", "timing confirmed by receipt");
+assert.strictEqual(evOf("STR-2500", "B-19-02").status, "confirmed", "timing confirmed by pick");
+assert.strictEqual(evOf("SEN-3100", "D-08-04").status, "supported", "found stock supported");
+assert.strictEqual(evOf("PMP-4100", "A-22-01").status, "supported", "empty location supported");
+assert.ok(E.explain(ev.variances.find(v => v.sku === "BAT-5100" && v.location === "C-14-02")).text.includes("Evidence:"), "write-up cites evidence");
+assert.ok(!E.explain(r.variances[0]).text.includes("Evidence:"), "no evidence line without history");
+assert.ok(E.parseTransactions("a,b\n1,2\n").error, "bad transaction file is rejected");
+
 console.log("all checks passed");
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),
