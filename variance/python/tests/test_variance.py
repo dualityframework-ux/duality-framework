@@ -364,3 +364,14 @@ def test_case_study_shows_the_real_accuracy_query_and_result():
     for tile in [f"{r.net_accuracy * 100:.2f}%", f"{r.gross_accuracy * 100:.2f}%",
                  f"${r.gross_variance:,.0f}", f"${abs(r.net_variance):,.0f} net"]:
         assert tile in page, tile
+
+
+def test_homepage_method_example_matches_the_sample():
+    page = (ROOT.parent.parent / "index.html").read_text()
+    con = run_sql.connect(SAMPLE)
+    acc = run_sql.run(con, "accuracy").iloc[0]
+    pareto = run_sql.run(con, "pareto")
+    cross = int((pareto["cumulative_share"] < 0.8).sum()) + 1
+    for quoted in [f"{acc.net_accuracy * 100:.2f}% accurate on net", f"gross accuracy is {acc.gross_accuracy * 100:.2f}%",
+                   f"{cross} of {len(pareto)} variance lines carry 80%", f"research those {cross} lines first"]:
+        assert quoted in page, quoted
