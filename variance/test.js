@@ -160,6 +160,18 @@ console.log("all checks passed");
   assert.strictEqual(fa.lines.find(x => x.sku === "OIL-1001").pattern, "timing", "serial dates feed the timing check");
 }
 
+
+// item codes are case-insensitive: "bat-1" and "BAT-1" are one item (counts and transactions)
+{
+  const cx = E.parseCSV("sku,location,system qty,counted qty,unit cost\nbat-1,A-01-01,10,0,100\nBAT-1 ,A-02-01,0,10,100\n");
+  const { records: cr } = E.buildRecords(cx.slice(1), E.guessMapping(cx[0]));
+  assert.deepStrictEqual(cr.map(x => x.sku), ["BAT-1", "BAT-1"]);
+  const ca = E.analyze(cr, { threshold: 1000, recentDays: 3 });
+  assert.deepStrictEqual(ca.variances.map(v => v.pattern), ["mislocated", "mislocated"]);
+  const tx = E.parseTransactions("date,sku,type,from,to,qty\n2026-10-01,bat-1,putaway,DOCK,A-02-01,10\n");
+  assert.strictEqual(tx.txns[0].sku, "BAT-1");
+}
+
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),
   grossAcc: (s.grossAccuracy * 100).toFixed(2), netAcc: (s.netAccuracy * 100).toFixed(2), over: s.overThreshold, for80: r.for80,

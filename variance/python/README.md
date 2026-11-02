@@ -30,7 +30,7 @@ python run_sql.py sample_count.csv --tx sample_transactions.csv confirmed_misloc
 python variance_analyzer.py sample_count.csv --prior sample_prior_count.csv
 python run_sql.py sample_count.csv --prior sample_prior_count.csv repeat_variances
 
-# Tests (56), including parity with the JavaScript engine: causes, metrics, tuned settings, evidence and count-over-count comparison
+# Tests (80+), including parity with the JavaScript engine: causes, metrics, tuned settings, evidence and count-over-count comparison
 pytest -q
 ```
 

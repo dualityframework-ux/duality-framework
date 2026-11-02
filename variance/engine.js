@@ -79,7 +79,7 @@
     rows.forEach((r, i) => {
       const g = k => map[k] == null ? "" : (r[map[k]] ?? "").trim();
       const rec = {
-        line: i + 2, sku: g("sku"), location: g("location"), description: g("description"),
+        line: i + 2, sku: g("sku").toUpperCase(), location: g("location"), description: g("description"),
         system: num(g("system_qty")), counted: num(g("counted_qty")), cost: num(g("unit_cost")),
         counter: g("counter"), countDate: parseDate(g("count_date")), lastMove: parseDate(g("last_move")),
       };
@@ -302,7 +302,7 @@
     }
     if (map.date == null || map.sku == null || (map.from == null && map.to == null)) return { error: "Couldn't find date, SKU and from/to location columns in the transaction file." };
     const txns = rows.slice(1).map(r => ({
-      date: parseDate(r[map.date]), sku: (r[map.sku] || "").trim(),
+      date: parseDate(r[map.date]), sku: (r[map.sku] || "").trim().toUpperCase(),
       from: map.from == null ? "" : (r[map.from] || "").trim(), to: map.to == null ? "" : (r[map.to] || "").trim(),
       qty: map.qty == null ? NaN : num(r[map.qty]), type: map.type == null ? "" : (r[map.type] || "").trim().toLowerCase(),
     })).filter(t => t.date && t.sku);

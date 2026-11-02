@@ -194,7 +194,8 @@ const E = window.VarianceEngine;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money = (n, cents=false) => (n < 0 ? "−$" : "$") + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:cents?2:0,maximumFractionDigits:cents?2:0});
-const pct = n => n == null ? "—" : (n*100).toFixed(2) + "%";
+// Gross accuracy goes below zero when variance dollars exceed book value; say so instead of "−40.00%".
+const pct = n => n == null ? "—" : n < 0 ? "below 0%" : (n*100).toFixed(2) + "%";
 const qtyS = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en-US");
 
 let raw = null, map = null, result = null, filter = null, source = "", recountMin = 25, blind = true;
@@ -295,7 +296,7 @@ function render(){
     <a class="btn" href="#p-h">Explore sample results</a>
   </section>` : ""}
   <div class="tiles">
-    <div class="tile"><div class="k">Gross accuracy</div><div class="v">${pct(s.grossAccuracy)}</div><div class="d">of ${money(s.bookValue)} book</div></div>
+    <div class="tile"><div class="k">Gross accuracy</div><div class="v">${pct(s.grossAccuracy)}</div><div class="d">${s.grossAccuracy < 0 ? `gross variance is more than the ${money(s.bookValue)} book value` : `of ${money(s.bookValue)} book`}</div></div>
     <div class="tile"><div class="k">Net accuracy</div><div class="v">${pct(s.netAccuracy)}</div><div class="d">overs and shorts offset</div></div>
     <div class="tile"><div class="k">Gross variance</div><div class="v">${money(s.gross)}</div><div class="d">absolute dollars</div></div>
     <div class="tile"><div class="k">Net variance</div><div class="v ${s.net<0?"neg":"pos"}">${money(s.net)}</div><div class="d">${s.net<0?"short":"over"} overall</div></div>
