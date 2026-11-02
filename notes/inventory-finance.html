@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>From shelf count to gross margin · Duality</title>
+<meta name="description" content="Follow a synthetic inventory discrepancy into inventory value, cost of goods sold and gross margin. Change the evidence to see why the accounting response changes.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="From shelf count to gross margin">
+<meta property="og:description" content="A synthetic inventory-to-finance bridge: trace a shortage, review the evidence and compare the proposed financial effects.">
+<meta property="og:image" content="https://dualityframework-ux.github.io/duality-framework/variance/preview.png">
+<meta property="og:url" content="https://dualityframework-ux.github.io/duality-framework/notes/inventory-finance.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:dark;--bg:#0a0a11;--surface:#15131e;--line:#555068;--fg:#f4f2ff;--muted:#aaa7bb;--accent:#ad91ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--accent);text-underline-offset:3px}a:hover{text-decoration-thickness:2px}:focus-visible{outline:3px solid var(--accent);outline-offset:4px}.wrap{max-width:58rem;margin:auto;padding:24px max(20px,env(safe-area-inset-left)) 64px}nav{display:flex;flex-wrap:wrap;gap:8px 20px}nav a{display:inline-flex;align-items:center;min-height:44px}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.14em;font-size:.75rem;font-weight:700;margin-top:36px}h1{font-size:clamp(2.3rem,6vw,3.7rem);line-height:1.08;letter-spacing:-.04em;margin:12px 0 24px;max-width:16ch}h2{font-size:1.6rem;line-height:1.2;margin:0 0 16px}h3{font-size:1.08rem;margin:0 0 10px}p{margin:0 0 16px}.dek{font-size:1.2rem;max-width:48rem}.muted,caption{color:var(--muted)}section{margin-top:32px;padding-top:32px;border-top:1px solid var(--line)}.callout{padding:20px;border-left:3px solid var(--accent);background:var(--surface);margin:24px 0}.callout p:last-child{margin:0}.facts,.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.facts>div,.flow>div{padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px}.facts strong,.flow strong{display:block;font:700 1.5rem/1.4 ui-monospace,monospace;overflow-wrap:anywhere}.facts span,.flow span{font-size:.9rem;color:var(--muted)}fieldset{border:1px solid var(--line);border-radius:10px;margin:24px 0;padding:16px}legend{font-weight:700;padding:0 6px}.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:flex;align-items:center;gap:10px;min-height:48px;border:1px solid var(--line);padding:10px;border-radius:8px;cursor:pointer}label:has(input:checked){background:var(--surface);border-color:var(--accent)}input{accent-color:var(--accent);width:20px;height:20px;flex-shrink:0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.95rem}caption{text-align:left;padding-bottom:12px}th,td{padding:12px 8px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}thead th{color:var(--muted)}.formula{padding:16px;background:var(--surface);font-family:ui-monospace,monospace;overflow-wrap:anywhere}.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%)}footer{margin-top:36px;color:var(--muted)}[hidden]{display:none!important}@media(max-width:620px){.facts,.flow,.choices{grid-template-columns:1fr}th,td{padding:10px 4px;font-size:.85rem}}@media print{#scenario-controls,nav{display:none}body{background:white;color:black}.wrap{max-width:none}.facts>div,.flow>div,.callout,.formula{background:white}a,.muted,caption,.facts span,.flow span,thead th,footer{color:#333}section{break-inside:avoid}}
+</style>
+<script src="inventory-finance/model.js" defer></script>
+<script src="inventory-finance/page.js" defer></script>
+</head>
+<body>
+<main class="wrap">
+<nav aria-label="Breadcrumb"><a href="../">Duality</a><a href="../#notes">All analyses</a><a href="../variance/">Open Variance</a></nav>
+<p class="eyebrow">Inventory × finance · Synthetic case study</p>
+<h1>From shelf count to gross margin.</h1>
+<p class="dek">A shortage starts on the floor. Its financial effect depends on what happened to the stock. Follow the evidence through the proposed entry and the margin calculation.</p>
+<p class="muted">An illustrative model for Ian Kachadorian’s Duality portfolio. All records and balances below are synthetic assumptions, separate from Variance’s sample. They are not employer results.</p>
+<div class="callout"><p><strong>The decision:</strong> reconcile the physical difference before proposing an expense. Stock in another bin, a confirmed loss and an unposted shipment require different follow-up.</p></div>
+<section aria-labelledby="count-heading">
+<h2 id="count-heading">The starting discrepancy</h2>
+<p>Item <strong data-value="sku">BAT-DEMO</strong> is carried at <strong data-value="cost">$75.00</strong> per unit. The system shows <strong data-value="book">100</strong> units; the first bin count finds <strong data-value="count">92</strong>. Quantity × carrying cost gives the initial dollar exposure.</p>
+<div class="facts"><div><strong data-value="shortage">8</strong><span>Units short on the first count</span></div><div><strong data-value="initial">$600.00</strong><span>Initial exposure, before investigation</span></div><div><strong data-value="cost">$75.00</strong><span>Carrying cost per unit, not selling price</span></div></div>
+<fieldset id="scenario-controls" hidden><legend>Change the evidence</legend><div class="choices">
+<label><input type="radio" name="scenario" value="pending">Count only</label>
+<label><input type="radio" name="scenario" value="found">All stock located</label>
+<label><input type="radio" name="scenario" value="loss" checked>Partial recovery; loss confirmed</label>
+<label><input type="radio" name="scenario" value="shipment">Shipment cost not posted</label>
+</div></fieldset>
+<noscript><p class="callout">The worked example below shows partial recovery with a confirmed loss. Enable JavaScript to compare the other evidence scenarios.</p></noscript>
+<p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
+</section>
+<section aria-labelledby="evidence-heading">
+<h2 id="evidence-heading" data-value="label">Partial recovery; loss confirmed</h2>
+<p data-value="evidence">The recount finds some units in overflow. A signed investigation confirms the remaining units are lost in the current period; receipt and shipment records are complete.</p>
+<div class="table-wrap" role="region" aria-label="Quantity reconciliation" tabindex="0"><table>
+<caption>Reconcile the initial difference before deciding the entry.</caption>
+<thead><tr><th scope="col">Explanation</th><th scope="col">Units</th><th scope="col">At carrying cost</th></tr></thead>
+<tbody>
+<tr><th scope="row">Found elsewhere</th><td data-value="found">3</td><td data-value="recovered">$225.00</td></tr>
+<tr><th scope="row">Confirmed loss</th><td data-value="lost">5</td><td data-value="lossCost">$375.00</td></tr>
+<tr><th scope="row">Shipped; cost unposted</th><td data-value="shipped">0</td><td data-value="shipmentCost">$0.00</td></tr>
+<tr><th scope="row">Still unresolved</th><td data-value="unresolved">0</td><td data-value="exposure">$0.00</td></tr>
+</tbody></table></div>
+<div class="callout"><h3>Who acts next?</h3><p data-value="action">Inventory control documents the recount and loss. The controller reviews the evidence and approves the inventory reduction and expense classification before posting.</p></div>
+</section>
+<section aria-labelledby="bridge-heading">
+<h2 id="bridge-heading">The financial bridge</h2>
+<p>These are the balances <strong>if the proposed entry is approved and posted</strong>. With unresolved evidence, unchanged balances are provisional, not approval to close the books.</p>
+<div class="flow" aria-label="Proposed financial effects"><div><span>Inventory decrease</span><strong data-value="reduction">$375.00</strong></div><div><span>COGS increase</span><strong data-value="reduction">$375.00</strong></div><div><span>Gross profit decrease</span><strong data-value="reduction">$375.00</strong></div></div>
+<p class="formula">Recognized units × carrying cost = inventory reduction = COGS increase</p>
+<div class="table-wrap" role="region" aria-label="Financial balances" tabindex="0"><table>
+<caption>Period totals for the synthetic business, including other items.</caption>
+<thead><tr><th scope="col">Measure</th><th scope="col">Before</th><th scope="col">After proposed entry</th></tr></thead>
+<tbody>
+<tr><th scope="row">Inventory asset</th><td data-value="inventoryBefore">$20,000.00</td><td data-value="inventoryAfter">$19,625.00</td></tr>
+<tr><th scope="row">Revenue</th><td data-value="revenue">$100,000.00</td><td data-value="revenue">$100,000.00</td></tr>
+<tr><th scope="row">Cost of goods sold</th><td data-value="cogsBefore">$60,000.00</td><td data-value="cogsAfter">$60,375.00</td></tr>
+<tr><th scope="row">Gross profit</th><td data-value="profitBefore">$40,000.00</td><td data-value="profitAfter">$39,625.00</td></tr>
+<tr><th scope="row">Gross margin</th><td data-value="marginBefore">40.00%</td><td data-value="marginAfter">39.63%</td></tr>
+</tbody></table></div>
+<p class="formula">Gross profit = revenue − COGS<br>Gross margin = gross profit ÷ revenue × 100</p>
+<p>Margin falls by <strong data-value="marginDrop">0.375 percentage points</strong>, calculated before rounding the displayed margins. The entry has no direct cash movement; any replacement purchase is a separate transaction.</p>
+<h3>Proposed journal entry</h3><p data-value="entry">Proposed entry: debit COGS — inventory loss; credit Inventory. This case includes confirmed loss in COGS.</p>
+<p>Debit: <strong data-value="debit">$375.00</strong> · Credit: <strong data-value="credit">$375.00</strong>. These amounts are illustrative; this page does not post transactions.</p>
+</section>
+<section aria-labelledby="judgment-heading">
+<h2 id="judgment-heading">What would change the recommendation?</h2>
+<p>A matching overflow count removes a quantity loss only after item identity, ownership and location records agree. A dispatch record explains a shortage only after the period, revenue and cost postings are checked. A count difference alone establishes neither cause nor the final expense.</p>
+<p>Before close, retain the signed recount, location search, movement history and posting review. The controller resolves remaining uncertainty and approves the period and accounts. A prior-period error or uncertain ownership would require a different analysis.</p>
+<h3>Accounting assumptions</h3>
+<p>This model uses a constant carrying cost and current-period events. It assumes no tax, freight, returns, valuation write-downs or cost-layer differences. Revenue stays fixed. For the shipment scenario, the sale’s revenue is already included in the starting balance.</p>
+<p>For this illustration, confirmed inventory losses are included in COGS. If the reporting policy puts them below gross profit, the loss still reduces inventory and pre-tax profit, but would not reduce the gross margin shown here. Account classification requires review.</p>
+<p><a href="https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/">IAS 2’s overview</a> explains expense recognition for sold inventory and inventory losses. That principle informs this example; it does not establish a company’s account mapping or jurisdiction-specific treatment.</p>
+<h3>Check the work</h3>
+<p>The <a href="inventory-finance/model.js">calculation source and synthetic inputs</a> are readable without signing in. <a href="inventory-finance/test.js">Tests</a> check the reconciliation, balanced entries, financial effects and the saved worked example. The same model powers the interactive scenarios.</p>
+<p><a href="../variance/case-study.html">See how Variance finds count differences →</a></p>
+</section>
+<footer>Duality · Synthetic analysis · November 2026</footer>
+</main>
+</body>
+</html>

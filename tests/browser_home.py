@@ -57,6 +57,9 @@ with sync_playwright() as playwright:
                 target = ROOT / path
                 assert target.is_file(), href
                 assert f'id="{anchor}"' in target.read_text(), href
+        bridge = page.locator('#notes').get_by_role('link', name='Explore the bridge')
+        expect(bridge).to_have_attribute('href', './notes/inventory-finance.html')
+        assert (ROOT / 'notes/inventory-finance.html').is_file()
         # Three highlights on the homepage; the full history lives on the change log.
         highlights = page.locator('#log > ol > li')
         expect(highlights).to_have_count(3)
