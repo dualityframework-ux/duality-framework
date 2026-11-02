@@ -404,3 +404,19 @@ def test_export_formats_match_javascript():
         ("2026-11-1", "2026-10-31"), ("2026-11-1", "2026-9-1"), ("2026-11-1", "2026-6-27")]
     lines = va.analyze(df, threshold=1000, recent_days=3).lines
     assert lines.set_index("sku").loc["OIL-1001", "pattern"] == "timing"
+
+
+def test_item_codes_are_case_insensitive(tmp_path):
+    f = tmp_path / "case.csv"
+    f.write_text("sku,location,system qty,counted qty,unit cost\nbat-1,A-01-01,10,0,100\nBAT-1 ,A-02-01,0,10,100\n")
+    df = va.load_count(f)
+    assert list(df["sku"]) == ["BAT-1", "BAT-1"]
+    assert list(va.analyze(df, threshold=1000, recent_days=3).lines["pattern"]) == ["mislocated", "mislocated"]
+
+
+def test_report_says_below_zero_when_variance_exceeds_book(tmp_path):
+    f = tmp_path / "over.csv"
+    f.write_text("sku,location,system qty,counted qty,unit cost\nSYN-1,A-01-01,1,0,10\nSYN-1,A-02-01,0,3,10\n")
+    r = va.analyze(va.load_count(f), threshold=1000, recent_days=3)
+    assert r.summary["grossAccuracy"] < 0, "the metric itself stays mathematically correct"
+    assert "Gross accuracy: below 0%" in va.report(r)

@@ -109,6 +109,14 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory() as directory
         page.locator('#m-' + field).select_option(str(index))
     page.locator('#mapGo').click()
     expect(page.locator('#msg')).to_contain_text('Analyzed 1 line from')
+    # Gross variance above book value reads "below 0%", not a negative percentage.
+    page.locator('#file').set_input_files({'name':'over-book.csv', 'mimeType':'text/csv',
+                                         'buffer':b'sku,location,system qty,counted qty,unit cost\nSYN-1,A-01-01,1,0,10\nsyn-1,A-02-01,0,3,10\n'})
+    expect(page.locator('#msg')).to_contain_text('Analyzed 2 lines')
+    gross_tile = page.locator('.tile').filter(has_text='Gross accuracy')
+    expect(gross_tile).to_contain_text('below 0%')
+    expect(gross_tile).to_contain_text('gross variance is more than the $10 book value')
+    assert '-' not in gross_tile.locator('.v').inner_text() and '−' not in gross_tile.locator('.v').inner_text()
     assert not errors, errors
     browser.close()
 print('Variance browser checks passed: keyboard, uploads, evidence, comparison, CSV/recount downloads, mapping.')

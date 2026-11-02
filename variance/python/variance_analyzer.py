@@ -78,7 +78,9 @@ def load_count(path_or_buffer) -> pd.DataFrame:
         if k not in df.columns:
             df[k] = ""
     df = df.dropna(subset=["system", "counted", "cost"])
-    df = df[(df["sku"].str.strip() != "") & (df["location"].str.strip() != "")]
+    df["sku"] = df["sku"].str.strip().str.upper()  # item codes are case-insensitive, as in most WMS/ERP systems
+    df["location"] = df["location"].str.strip()
+    df = df[(df["sku"] != "") & (df["location"] != "")]
     return df.reset_index(drop=True)
 
 
@@ -337,7 +339,7 @@ def load_transactions(path_or_buffer) -> pd.DataFrame:
     df["type"] = df["type"].str.lower()
     df["qty"] = _numbers(df["qty"]) if "qty" in df else float("nan")
     df["date"] = _dates(df["date"])
-    df["sku"] = df["sku"].str.strip()
+    df["sku"] = df["sku"].str.strip().str.upper()
     return df.dropna(subset=["date"])[df["sku"] != ""].reset_index(drop=True)
 
 
@@ -487,8 +489,8 @@ def compare_report(c: dict) -> str:
     p, s, d = c["prev"], c["curr"], c["delta"]
     pts = lambda x: f"{x * 100:+.2f} pts"
     out = ["## Compared with the previous count", "",
-           f"- Gross accuracy: {p['grossAccuracy']:.2%} → {s['grossAccuracy']:.2%} ({pts(d['grossAccuracy'])})",
-           f"- Net accuracy: {p['netAccuracy']:.2%} → {s['netAccuracy']:.2%} ({pts(d['netAccuracy'])})",
+           f"- Gross accuracy: {_acc(p['grossAccuracy'])} → {_acc(s['grossAccuracy'])} ({pts(d['grossAccuracy'])})",
+           f"- Net accuracy: {_acc(p['netAccuracy'])} → {_acc(s['netAccuracy'])} ({pts(d['netAccuracy'])})",
            f"- Gross variance: {_money(p['gross'])} → {_money(s['gross'])}",
            f"- {len(c['repeats'])} lines are off again ({_money(c['repeatGross'])} this count), {c['fresh']} are new, {c['resolved']} from last time now count clean",
            "", "| Location | SKU | Last count | This count | Cause now |", "| --- | --- | ---: | ---: | --- |"]
@@ -497,11 +499,16 @@ def compare_report(c: dict) -> str:
     return "\n".join(out)
 
 
+def _acc(x) -> str:
+    """Accuracy as text; gross accuracy goes below zero when variance dollars exceed book value."""
+    return "—" if x is None or x != x else ("below 0%" if x < 0 else f"{x:.2%}")
+
+
 def report(r: Result) -> str:
     s = r.summary
     out = ["# Variance report", "",
            f"- Lines counted: {s['lines']:,} ({s['varianceLines']} with a variance)",
-           f"- Gross accuracy: {s['grossAccuracy']:.2%} · Net accuracy: {s['netAccuracy']:.2%}",
+           f"- Gross accuracy: {_acc(s['grossAccuracy'])} · Net accuracy: {_acc(s['netAccuracy'])}",
            f"- Gross variance: {_money(s['gross'])} · Net variance: {_money(s['net'])}",
            f"- {r.for80} lines drive 80% of gross variance",
            *([f"- Transaction history matches transfers for {r.evidence['confirmed']} and supports {r.evidence['supported']} of {s['varianceLines']} lines"] if r.evidence else []), "",
