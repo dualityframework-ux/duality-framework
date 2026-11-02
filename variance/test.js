@@ -144,6 +144,22 @@ assert.ok(r.variances.every(v => "ABC".includes(v.abc)), "variance lines carry t
 }
 
 console.log("all checks passed");
+
+// export formats: accounting "(4)" and SAP "6-" negatives, Excel date serials (shared fixture with the pandas port)
+{
+  const fx = E.parseCSV(require("fs").readFileSync(__dirname + "/python/tests/export_formats.csv", "utf8"));
+  const fxMap = E.guessMapping(fx.shift());
+  const { records: fr, skipped: fs } = E.buildRecords(fx, fxMap);
+  assert.deepStrictEqual(fs, [5], "only the non-numeric line is skipped");
+  assert.deepStrictEqual(fr.map(x => [x.sku, x.system, x.counted, x.cost]),
+    [["OIL-1001", -4, 0, 12.5], ["FLT-2002", -6, 0, 1000], ["BRK-3003", 10, 8, 25]]);
+  const ymd = d => d && `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  assert.deepStrictEqual(fr.map(x => [ymd(x.countDate), ymd(x.lastMove)]),
+    [["2026-11-1", "2026-10-31"], ["2026-11-1", "2026-9-1"], ["2026-11-1", "2026-6-27"]]);
+  const fa = E.analyze(fr, { threshold: 1000, recentDays: 3 });
+  assert.strictEqual(fa.lines.find(x => x.sku === "OIL-1001").pattern, "timing", "serial dates feed the timing check");
+}
+
 console.log(JSON.stringify({
   lines: s.lines, varianceLines: s.varianceLines, gross: s.gross.toFixed(2), net: s.net.toFixed(2),
   grossAcc: (s.grossAccuracy * 100).toFixed(2), netAcc: (s.netAccuracy * 100).toFixed(2), over: s.overThreshold, for80: r.for80,

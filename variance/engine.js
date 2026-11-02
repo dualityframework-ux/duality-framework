@@ -58,9 +58,17 @@
     return map;
   }
 
-  const num = v => { const n = parseFloat(String(v ?? "").replace(/[$,\s]/g, "")); return isFinite(n) ? n : NaN; };
+  // Numbers as exports write them: "$1,200.50", accounting negatives "(5)" and SAP-style trailing minus "5-".
+  const num = v => {
+    let s = String(v ?? "").replace(/[$,\s]/g, ""), sign = 1;
+    const paren = s.match(/^\((.+)\)$/), trailing = s.match(/^([^-].*)-$/);
+    if (paren) { s = paren[1]; sign = -1; } else if (trailing) { s = trailing[1]; sign = -1; }
+    const n = sign * parseFloat(s); return isFinite(n) ? n : NaN;
+  };
   function parseDate(v) {
     const s = String(v || "").trim(); if (!s) return null;
+    // Excel date serials (a date column saved as "General"): days since 1899-12-30. 20000 to 80000 covers 1954 to 2119.
+    if (/^\d{5}(\.\d+)?$/.test(s) && +s >= 20000 && +s <= 80000) { const d = new Date(1899, 11, 30, 12); d.setDate(d.getDate() + Math.floor(+s)); return d; }
     let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return new Date(+m[1], +m[2] - 1, +m[3], 12);
     m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if (m) { const y = +m[3] < 100 ? 2000 + +m[3] : +m[3]; return new Date(y, +m[1] - 1, +m[2], 12); }
     const d = new Date(s); return isNaN(d) ? null : d;

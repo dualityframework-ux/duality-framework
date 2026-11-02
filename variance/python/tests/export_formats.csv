@@ -1,0 +1,5 @@
+sku,location,system qty,counted qty,unit cost,count date,last movement
+OIL-1001,A-01-01,(4),0,"$12.50",46327,46326
+FLT-2002,A-01-02,6-,0,"$1,000.00",11/1/2026,2026-09-01
+BRK-3003,A-02-01,10,8,25.00,46327,46200
+LMP-4004,A-02-02,abc,1,2.00,46327,

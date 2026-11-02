@@ -34,6 +34,27 @@ def _norm(s: str) -> str:
     return re.sub(r"[^a-z0-9#]+", " ", str(s).lower()).strip()
 
 
+def _numbers(col: pd.Series) -> pd.Series:
+    """Numbers as exports write them: "$1,200.50", accounting negatives "(5)" and SAP-style trailing minus "5-"."""
+    s = col.astype(str).str.replace(r"[$,\s]", "", regex=True)
+    paren = s.str.fullmatch(r"\((.+)\)")
+    trailing = s.str.fullmatch(r"[^-].*-") & ~paren
+    s = s.where(~paren, s.str[1:-1]).where(~trailing, s.str[:-1])
+    n = pd.to_numeric(s, errors="coerce")
+    return n.where(~(paren | trailing), -n)
+
+
+def _dates(col: pd.Series) -> pd.Series:
+    """Dates, including Excel date serials (a date column saved as "General"): days since 1899-12-30."""
+    s = col.astype(str).str.strip()
+    serial = pd.to_numeric(s.where(s.str.fullmatch(r"\d{5}(\.\d+)?")), errors="coerce")
+    serial = serial.where(serial.between(20000, 80000))
+    out = pd.to_datetime(s.where(serial.isna()), errors="coerce")
+    days = pd.to_timedelta(serial.dropna().apply(int), unit="D")
+    out.loc[days.index] = pd.Timestamp("1899-12-30") + days
+    return out
+
+
 def load_count(path_or_buffer) -> pd.DataFrame:
     """Read a cycle count CSV and rename its columns to the standard names."""
     raw = pd.read_csv(path_or_buffer, dtype=str, keep_default_na=False)
@@ -50,9 +71,9 @@ def load_count(path_or_buffer) -> pd.DataFrame:
     if missing:
         raise ValueError(f"missing required columns: {', '.join(missing)}")
     for k in ("system", "counted", "cost"):
-        df[k] = pd.to_numeric(df[k].str.replace(r"[$,\s]", "", regex=True), errors="coerce")
+        df[k] = _numbers(df[k])
     for k in ("count_date", "last_move"):
-        df[k] = pd.to_datetime(df[k], errors="coerce") if k in df.columns else pd.NaT
+        df[k] = _dates(df[k]) if k in df.columns else pd.NaT
     for k in ("description", "counter"):
         if k not in df.columns:
             df[k] = ""
@@ -314,8 +335,8 @@ def load_transactions(path_or_buffer) -> pd.DataFrame:
     for k in ("from", "to", "type"):
         df[k] = df[k].str.strip() if k in df else ""
     df["type"] = df["type"].str.lower()
-    df["qty"] = pd.to_numeric(df["qty"], errors="coerce") if "qty" in df else float("nan")
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df["qty"] = _numbers(df["qty"]) if "qty" in df else float("nan")
+    df["date"] = _dates(df["date"])
     df["sku"] = df["sku"].str.strip()
     return df.dropna(subset=["date"])[df["sku"] != ""].reset_index(drop=True)
 

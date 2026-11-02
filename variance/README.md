@@ -47,7 +47,7 @@ The matching rules are tunable per building, in the page's **Detection settings*
 
 ## Input
 
-A CSV with one row per counted location. Required: SKU, location, system quantity, counted quantity, unit cost. Optional but useful: description, counter, count date, last movement date. Common header names are matched automatically, and anything else can be matched by hand.
+A CSV with one row per counted location. Required: SKU, location, system quantity, counted quantity, unit cost. Optional but useful: description, counter, count date, last movement date. Common header names are matched automatically, and anything else can be matched by hand. Numbers can include `$` and thousands separators, and negatives can be written `-5`, `(5)` (accounting style) or `5-` (SAP style). Dates can be `2026-11-01`, `11/1/2026` or an Excel date serial such as `46327` (a date column saved as General).
 
 ## Metrics
 

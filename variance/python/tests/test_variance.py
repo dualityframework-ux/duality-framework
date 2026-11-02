@@ -392,3 +392,15 @@ def test_one_pager_figures_match_the_sample():
     for quoted in [f"system {int(line.system_qty)}, counted {int(line.counted_qty)}", f"−{abs(int(line.var_units))}</span> units",
                    f"−${abs(line.var_dollars):,.2f}"]:
         assert quoted in page, quoted
+
+
+def test_export_formats_match_javascript():
+    """Accounting "(4)" and SAP "6-" negatives and Excel date serials; same fixture and expectations as variance/test.js."""
+    df = va.load_count(ROOT / "tests" / "export_formats.csv")
+    assert [tuple(r) for r in df[["sku", "system", "counted", "cost"]].itertuples(index=False)] == [
+        ("OIL-1001", -4, 0, 12.5), ("FLT-2002", -6, 0, 1000), ("BRK-3003", 10, 8, 25)]
+    ymd = lambda d: f"{d.year}-{d.month}-{d.day}"  # noqa: E731
+    assert [(ymd(a), ymd(b)) for a, b in zip(df["count_date"], df["last_move"])] == [
+        ("2026-11-1", "2026-10-31"), ("2026-11-1", "2026-9-1"), ("2026-11-1", "2026-6-27")]
+    lines = va.analyze(df, threshold=1000, recent_days=3).lines
+    assert lines.set_index("sku").loc["OIL-1001", "pattern"] == "timing"
